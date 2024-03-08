@@ -1,34 +1,53 @@
-import express from 'express';
-import { tockenGenerator } from './services/tocken';
+import express, { response } from 'express';
+import { tockenGenerator} from './services/tocken';
+import { randomBytes } from 'crypto';
+import dotenv from 'dotenv';
+import { routerUser } from './Routes/UserRoute';
+dotenv.config();
+
+
+import { createTablesDb } from './database/migrations/queriesDatabase_01';
+
 const app = express();
 const PORT = 3000;
 
+app.use(express.json());
 
-const payload = { userId: 123 };
-const tokenGenerator = new tockenGenerator(payload);
-
-const token = tokenGenerator.token;
+app.use("/user",routerUser)
 
 
-app.get('/', (req, res) => {
-  res.send('¡Hola, mundo!');
-
-});
-
-app.get('/saludo', (req, res) => {
-    res.send('Saludo, mundo!');
-  });
 
 
-  
-app.get('/salud2', (req, res) => {
-    res.send('Saludo, mundo!');
-  });
+createTablesDb();
+
+//Route for Users
+
+//app.use("/users",userRouter);
+//  const token = new tockenGenerator();
+//  app.use('/salud3', token.checkToken);
+ // app.post('/salud3',token.checkToken, (req, res) => {
+  //  res.send('Saludo, mundo has pasado la validacion de del token!');
+ // });
+app.post("/json",(req,resp) => {
+  console.log(req.body);
+  resp.json({result:"Hola desde json"})
+})
 
   app.get('/token', (req, res) => {
-    res.json({
-      token:token
-    });
+    const user = {
+         userId:123,
+         rol:"Admin"
+    }
+    const payload = { userId: user.userId,
+      rol:user.userId };
+
+      if (user){
+      const token = new tockenGenerator()
+      const tokenGenerad =token.setToken(payload);
+      res.json({
+        token:tokenGenerad
+      });
+      }
   });
 
 app.listen(PORT, () => {
