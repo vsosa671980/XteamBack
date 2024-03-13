@@ -1,6 +1,7 @@
 import { UserInterface } from "../interfaces/UserInterface";
 import { connectionDB } from "../database/connection";
 import { EncryptPassword } from "../utils/encryptPassword";
+import { json } from "sequelize";
 
 
 
@@ -11,7 +12,6 @@ import { EncryptPassword } from "../utils/encryptPassword";
 class UserDao implements UserInterface{
 
     conn:any
-
     constructor(){
        this.getConnection().then(connectionDB => {
            this.conn = connectionDB
@@ -184,6 +184,31 @@ class UserDao implements UserInterface{
         const fault = {error:"Error finding the user",message:error}
         return fault // O devuelve un objeto con el mensaje de error
     }
+ }
+
+ async login (passedEmail:string, passedPassword:string){
+
+    //Recive the email and password from the request
+    const email = passedEmail;
+    const password = passedPassword;
+    //check if the user exist
+    const user = await this.findUSerByEmail(email);
+    //Check if the user exist
+    if(user){
+        
+        const isPasswordCorrect = await EncryptPassword.checkPassword(password, user.password);
+        //Check if the password is correct
+        if(isPasswordCorrect){
+            let response = {status:"ok",user:user}
+            return response;
+        }else{
+            let response = {status:"error",message:"Password incorrect"}
+            return response;
+        }
+    }else{
+        return false;
+    }
+  
  }
     /*
     * Get connection element of database

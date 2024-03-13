@@ -107,18 +107,6 @@ routerUser.post("/createUser", registerUserValidationRules(), async function(req
 });
 
 
-
-/*
-* Update the user 
-* return json respond or error
-*/
-routerUser.post("/updateUser", registerUserValidationRules(), async function(req: any, resp: any){
-
-})
-
-
-
-
 /*
 * Change the status of the user
 * return json respond or error
@@ -136,11 +124,14 @@ routerUser.post("/changeStatus", async function(req: any, resp: any) {
 */
 
 routerUser.post("/loginUser", async function(req: any, resp: any) {
-  req.body.password = req.body.password
-  req.body.email = req.body.email.toLowerCase();
-  // Pass the request to the repository
+  //Set the body of the request
+  let password = req.body.password
+  let email = req.body.email.toLowerCase();
+  //Check if user already exists and if the password is correct
+   let responsePasswords = await dao.login(email, password);
+   resp.status(200).json(responsePasswords);
 }
-)
+) 
 
 
 

@@ -22,20 +22,14 @@ class EncryptPassword {
     *Check the password
     *
     */
-    public static checkPassword(userInputPassword:string,hashedPassword:string){
-        bcrypt.compare(userInputPassword, hashedPassword, function(err, result) {
-            if (err) {
-                console.error(err);
-                return;
-            }
-            if (result) {
-                console.log('Contraseña correcta');
-            } else {
-                console.log('Contraseña incorrecta');
-            }
-        });
-
+    public static async checkPassword(userInputPassword: string, hashedPassword: string): Promise<boolean> {
+        try {
+            const result = await bcrypt.compare(userInputPassword, hashedPassword);
+            return result;
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
     }
 }
-
 export{EncryptPassword};
