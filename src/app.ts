@@ -18,7 +18,7 @@ app.use("/user",routerUser)
 
 
 
-createTablesDb();
+//createTablesDb();
 
 //Route for Users
 

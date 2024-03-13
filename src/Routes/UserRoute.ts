@@ -69,7 +69,7 @@ routerUser.post("/createUser", registerUserValidationRules(), async function(req
      // return; // Return the response from Check
     //}
     
-    // Valida el cuerpo de la solicitud
+    // valida el cuerpo de la solicitud
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return resp.status(400).json({ errors: errors.array() });
@@ -77,11 +77,13 @@ routerUser.post("/createUser", registerUserValidationRules(), async function(req
 
     // Extrae los datos del cuerpo de la solicitud
     const { name, surname, age, email, phone, img ,rol,status,password} = req.body;
+    
 
     // Calcula la edad del usuario
     let ageUser: number = calculateAge(age);
 
     // Crea el usuario en la base de datos
+    const user = await dao.createUser(name, surname, age, email, phone, img ,rol,status,password);
     
     // Devuelve una respuesta exitosa
     return resp.status(201).json({
@@ -116,7 +118,6 @@ routerUser.post("/changeStatus", async function(req: any, resp: any) {
 
 }
 )
-
 
 /*
 * Login of user

@@ -6,16 +6,16 @@ class EncryptPassword {
     *Encrypt the password
     *
     */
-    public static encrypt(password:string){
-        bcrypt.genSalt(10,function(err,salt){
-            bcrypt.hash(password,salt,function(err,hash){
-               if(err){
-                console.log(err);
-                return
-               }
-               console.log("Encrypted")
-            })
-        })
+    public static async encrypt(password:string){
+        try {
+            const salt = await bcrypt.genSalt(10);
+            const hash = await bcrypt.hash(password, salt);
+            console.log("Encrypted:", hash);
+            return hash;
+        } catch (err) {
+            console.error(err);
+            throw err;
+        }
     }
     
     /*
@@ -23,6 +23,8 @@ class EncryptPassword {
     *
     */
     public static async checkPassword(userInputPassword: string, hashedPassword: string): Promise<boolean> {
+        console.log(userInputPassword);
+        console.log(hashedPassword);
         try {
             const result = await bcrypt.compare(userInputPassword, hashedPassword);
             return result;

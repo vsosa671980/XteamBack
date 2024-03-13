@@ -2,6 +2,7 @@ import { UserInterface } from "../interfaces/UserInterface";
 import { connectionDB } from "../database/connection";
 import { EncryptPassword } from "../utils/encryptPassword";
 import { json } from "sequelize";
+import { calculateAge } from "../utils/utils";
 
 
 
@@ -21,7 +22,7 @@ class UserDao implements UserInterface{
     async createUser(
         name: string,
         surname: string,
-        age: number,
+        age: string,
         email: string,
         phone: string,
         img: string,
@@ -56,8 +57,11 @@ class UserDao implements UserInterface{
                     //Create a new user and save to the database
                     const created= new Date();
                     //Password
-                    const passwordEncryptedUSer = EncryptPassword.encrypt(password);
-                    //Set Rol 
+                    const passwordEncryptedUSer = await EncryptPassword.encrypt(password);
+                    //Set Rol
+                    //const passwordEncryptedUSer = password 
+                    const edad = calculateAge(age);
+
                     if(rol == ""){
                         rol = "user"
                     }
@@ -66,13 +70,13 @@ class UserDao implements UserInterface{
 
                     await this.conn.query(
                         "INSERT INTO Users (name, surname, age, email, phone,status,rol,password,img,created) VALUES (?, ?, ?, ?, ?, ?,?,?,?,?);",
-                        [name, surname, age, email, phone,status,rol,passwordEncryptedUSer,img,created]
+                        [name, surname, edad, email, phone,status,rol,passwordEncryptedUSer,img,created]
                     );
                     
                 }             
             } catch (error) {
                 console.log(error)
-                throw new Error("Error updating the user");
+                throw new Error("Error updating  or creating the user");
                 
             }
     }
@@ -133,9 +137,9 @@ class UserDao implements UserInterface{
 
   async findUSerByEmail(email:string){
     try {
-        const [user] = await this.conn.query(`Select * FROM users Where email = ?`,[email])
+        const [user] = await this.conn.query(`Select * FROM users Where email = ? `,[email])
         if (user.length !== 0) {
-            return user
+            return user[0]
         }else{
             return false
         }
@@ -193,7 +197,8 @@ class UserDao implements UserInterface{
     const password = passedPassword;
     //check if the user exist
     const user = await this.findUSerByEmail(email);
-    //Check if the user exist
+    console.log(user)
+     //Check if the user exist
     if(user){
         
         const isPasswordCorrect = await EncryptPassword.checkPassword(password, user.password);

@@ -11,8 +11,9 @@ class User{
     phone:string;
     status:string;
     img:string;
+    password:string;
 
-    constructor(name:string,surname:string,age:number,email:string,rol:string,phone:string,status:string)
+    constructor(name:string,surname:string,age:number,email:string,rol:string,phone:string,status:string,password:string)
     {
        this.name = name;
        this.surname = surname;
@@ -21,6 +22,7 @@ class User{
        this.rol = rol;
        this.phone = phone;
        this.status = status;
+       this.password = password;
     }
     /*
     * Set the date of user

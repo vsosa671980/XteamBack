@@ -24,6 +24,7 @@ const registerUserValidationRules = () => {
     // Agrega más reglas de validación según sea necesario para otros campos
   ];
 };
+
 const checkIfEmailExists = async (req: Request, resp: Response) => {
   try {
     const correo = req.body.email;
