@@ -7,13 +7,12 @@ import { DecodedToken } from '../interfaces/DecodedToken';
 import { env } from 'process';
 dotenv.config();
 
-
  /**
      * Clase for generate object token
-   
-     */
-export class tockenGenerator{
-    secretKey: string
+ */
+class TokenGenerator{
+    // Scret key for generate token
+        secretKey: string
     /**
      * Crea una instancia de TokenGenerator.
      * @param {object} payload - La información que se incluirá en el token.
@@ -33,12 +32,13 @@ export class tockenGenerator{
      * .
      * @private
      */
-
     setToken(payload:object):string{
-        const token =  jwt.sign(payload,this.secretKey);
+        const options = {
+            expiresIn: '1h' // Token expirará en 1 hora desde la emisión
+          };
+        const token =  jwt.sign(payload,this.secretKey,options);
         return token;
     }
-    
     /**
      * Create middleware for check tokens
      * @param req 
@@ -48,11 +48,13 @@ export class tockenGenerator{
      */
     checkToken(req: Request, res: Response, next: NextFunction) {
         // Obtener el token
+
         let tokenReceived: string | undefined;
+        
         if (req.headers.authorization) {
-            tokenReceived = req.headers.authorization.split(" ")[1];
-        } else {
-            return res.status(401).json({ mensaje: 'Token no proporcionado' });
+            tokenReceived = req.headers.authorization.split(" ")[1]; 
+        } else {     
+            return res.status(401).json({ mensaje: 'Token not Supply error' });
         }
         // Revisar el token
         try {
@@ -61,19 +63,20 @@ export class tockenGenerator{
             if (tokenReceived) {
                 //const decoded = jwt.verify(tokenReceived, this.secretKey) as DecodedToken;
                 let decoded= jwt.verify(tokenReceived, this.secretKey)
+                console.log(decoded)
                 if (typeof decoded !== "string"){
                      result = decoded as DecodedToken;
+                     let rol = result.rol
+                     console.log(rol)
                 }
                 if(result !== undefined){
-                    console.log(result.rol)      
-                     
+                    let rol = result.rol
+                    console.log(rol)    
+                    next();
                 }
-                // Agregar el payload decodificado al objeto de solicitud para su uso posterior
-                // req.usuario = decoded;
-                // Continuar con el siguiente middleware
-                next();
+
             } else {
-                return res.status(401).json({ mensaje: 'Token no proporcionado' });
+                return res.status(401).json({ mensaje: 'Token not Supply' });
             }
         } catch (error) {
             console.log('Error al verificar el token:', error);
@@ -83,7 +86,8 @@ export class tockenGenerator{
                 return res.status(401).json({ mensaje: 'Token no proporcionado', error: error });
             }
     }
-    
     }
-
 }
+
+
+export {TokenGenerator}

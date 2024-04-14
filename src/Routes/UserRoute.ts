@@ -3,13 +3,14 @@ import { UserDao } from "../repositories/UserDao";
 import { body, validationResult } from 'express-validator';
 import {checkIfEmailExists, registerUserValidationRules } from '../helpers/validatorHelper'
 import { calculateAge } from "../utils/utils";
+import { TokenGenerator } from "../services/tocken";
 
 //Create Router Object
 const routerUser = Router();
 //Create new UserDao Object
 const dao = new UserDao();
 
-
+const TokenService = new TokenGenerator()
 /*
 * For list all users
 * Return json list of Users
@@ -108,22 +109,7 @@ routerUser.post("/createUser", registerUserValidationRules(), async function(req
   }
 });
 
-
-/*
-* Change the status of the user
-* return json respond or error
-*/
-
-routerUser.post("/changeStatus", async function(req: any, resp: any) {
-
-}
-)
-
-/*
-* Login of user
-* return json respond or error
-*/
-
+const tocken = new TokenGenerator();
 routerUser.post("/loginUser", async function(req: any, resp: any) {
   //Set the body of the request
   let password = req.body.password
@@ -132,9 +118,12 @@ routerUser.post("/loginUser", async function(req: any, resp: any) {
    let responsePasswords = await dao.login(email, password);
    resp.status(200).json(responsePasswords);
 }
-) 
-
-
-
+);
+routerUser.post("/loginTocken",tocken.checkToken, async function(req: any, resp: any) {
+  //Set the body of the request
+   resp.json({
+    "message":"pass"
+   })
+})
 
 export{routerUser}

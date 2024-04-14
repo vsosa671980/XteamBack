@@ -3,6 +3,7 @@ import { connectionDB } from "../database/connection";
 import { EncryptPassword } from "../utils/encryptPassword";
 import { json } from "sequelize";
 import { calculateAge } from "../utils/utils";
+import { TokenGenerator } from "../services/tocken";
 
 
 
@@ -191,7 +192,6 @@ class UserDao implements UserInterface{
  }
 
  async login (passedEmail:string, passedPassword:string){
-
     //Recive the email and password from the request
     const email = passedEmail;
     const password = passedPassword;
@@ -200,20 +200,34 @@ class UserDao implements UserInterface{
     console.log(user)
      //Check if the user exist
     if(user){
-        
         const isPasswordCorrect = await EncryptPassword.checkPassword(password, user.password);
         //Check if the password is correct
         if(isPasswordCorrect){
-            let response = {status:"ok",user:user}
+            // --Tocken --//
+            // Data for payload
+            const payload = {
+                "userid":user.idUser,
+                "name":user.name,
+                "rol":user.surname
+            }
+            //Create a tockenService class
+            const tockenService = new  TokenGenerator();
+            // Create a Token
+            const tocken = tockenService.setToken(payload);
+            let response = {status:"ok",user:user,tocken : tocken}
+            //Return response
             return response;
         }else{
             let response = {status:"error",message:"Password incorrect"}
             return response;
         }
     }else{
-        return false;
+        let response = {
+            status:"error",
+            message:"User don´t exist"
+        }
+        return response;
     }
-  
  }
     /*
     * Get connection element of database

@@ -1,5 +1,5 @@
 import express, { response } from 'express';
-import { tockenGenerator} from './services/tocken';
+import { TokenGenerator} from './services/tocken';
 import { randomBytes } from 'crypto';
 import dotenv from 'dotenv';
 import { routerUser } from './Routes/UserRoute';
@@ -11,7 +11,7 @@ import { createTablesDb } from './database/migrations/queriesDatabase_01';
 const app = express();
 const PORT = 3000;
 
-app.use(express.json());
+app.use(express.json());TokenGenerator
 
 app.use("/user",routerUser)
 
@@ -33,22 +33,7 @@ app.post("/json",(req,resp) => {
   resp.json({result:"Hola desde json"})
 })
 
-  app.get('/token', (req, res) => {
-    const user = {
-         userId:123,
-         rol:"Admin"
-    }
-    const payload = { userId: user.userId,
-      rol:user.userId };
-
-      if (user){
-      const token = new tockenGenerator()
-      const tokenGenerad =token.setToken(payload);
-      res.json({
-        token:tokenGenerad
-      });
-      }
-  });
+ 
 
 app.listen(PORT, () => {
   console.log(`Servidor escuchando en el puerto ${PORT}`);
