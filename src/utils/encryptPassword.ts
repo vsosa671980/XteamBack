@@ -1,7 +1,6 @@
 import bcrypt from 'bcryptjs';
 
 class EncryptPassword {
-
     /*
     *Encrypt the password
     *
@@ -17,7 +16,6 @@ class EncryptPassword {
             throw err;
         }
     }
-    
     /*
     *Check the password
     *
@@ -32,6 +30,7 @@ class EncryptPassword {
             console.error(error);
             throw error;
         }
+        
     }
 }
 export{EncryptPassword};

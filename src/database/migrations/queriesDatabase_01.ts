@@ -48,7 +48,6 @@ async function createTablesDb() {
             console.log("Tabla de Entrenamientos creada")
 
             //Training-Users Table
-
             const trainingUsers = `create table  if not exists trainingUser(idUser int,idTraining int,primary key(idUser,idTraining),foreign key(idUSer) references Users(idUser),foreign key(idTraining) references trainings(idTraining));
             `
             await conn.query(trainingUsers);
@@ -80,8 +79,6 @@ async function createTablesDb() {
             console.log("Table userCompetition created");
 
         }
-
-       
         // Cerrar la conexión
         if(conn){
             await conn.end();

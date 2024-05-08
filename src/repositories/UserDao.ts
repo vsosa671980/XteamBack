@@ -5,8 +5,6 @@ import { json } from "sequelize";
 import { calculateAge } from "../utils/utils";
 import { TokenGenerator } from "../services/tocken";
 
-
-
 /*
 * Class of User Dao
 *
@@ -40,6 +38,7 @@ class UserDao implements UserInterface{
                 if(user){
                     let id = user.idUser
                     let dateUpdated = new Date();
+                    const edad = calculateAge(age);
                     await this.conn.query(`
                    UPDATE users 
                    SET 
@@ -52,7 +51,7 @@ class UserDao implements UserInterface{
                   updated = ?
                   WHERE 
                   idUser = ?
-              `, [name, surname, age, email, phone, img, dateUpdated, id]);
+              `, [name, surname, edad, email, phone, img, dateUpdated, id]);
                     
                 }else{
                     //Create a new user and save to the database
@@ -68,7 +67,6 @@ class UserDao implements UserInterface{
                     }
 
                     status = "active";
-
                     await this.conn.query(
                         "INSERT INTO Users (name, surname, age, email, phone,status,rol,password,img,created) VALUES (?, ?, ?, ?, ?, ?,?,?,?,?);",
                         [name, surname, edad, email, phone,status,rol,passwordEncryptedUSer,img,created]
@@ -149,7 +147,6 @@ class UserDao implements UserInterface{
         
     }
   }
-
 /*
 * List the user filtered by various
 * param: filters : object
@@ -174,7 +171,6 @@ class UserDao implements UserInterface{
             queryString += ';'; 
         }
     });
-
     // Get the users includes with the filters 
     try {
         const [user] = await this.conn.query(queryString, param);
@@ -190,7 +186,6 @@ class UserDao implements UserInterface{
         return fault // O devuelve un objeto con el mensaje de error
     }
  }
-
  async login (passedEmail:string, passedPassword:string){
     //Recive the email and password from the request
     const email = passedEmail;

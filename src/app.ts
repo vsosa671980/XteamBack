@@ -1,4 +1,5 @@
 import express, { response } from 'express';
+import { Sequelize } from 'sequelize';
 import { TokenGenerator} from './services/tocken';
 import { randomBytes } from 'crypto';
 import dotenv from 'dotenv';
@@ -7,19 +8,36 @@ dotenv.config();
 
 
 import { createTablesDb } from './database/migrations/queriesDatabase_01';
+import { TrainingRouter } from './Routes/TrainingRoutes';
 
 const app = express();
-const PORT = 3000;
+const PORT = 8000;
 
 app.use(express.json());TokenGenerator
 
 app.use("/user",routerUser)
-
-
+app.use("/training",TrainingRouter)
 
 
 //createTablesDb();
 
+const sequelize = new Sequelize('database', 'root', '123456', {
+  host: 'localhost',
+  dialect: 'mysql'
+});
+
+
+// Tesing the connection 
+async function testConnection() {
+  try {
+    await sequelize.authenticate();
+    console.log('La conexión se ha establecido exitosamente.');
+  } catch (error) {
+    console.error('No se pudo conectar a la base de datos:', error);
+  }
+}
+
+testConnection();
 //Route for Users
 
 //app.use("/users",userRouter);

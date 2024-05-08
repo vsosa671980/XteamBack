@@ -9,7 +9,6 @@ import { TokenGenerator } from "../services/tocken";
 const routerUser = Router();
 //Create new UserDao Object
 const dao = new UserDao();
-
 const TokenService = new TokenGenerator()
 /*
 * For list all users
@@ -20,13 +19,13 @@ routerUser.get('/listAllusers', async function(req, res) {
   const listOfUsers = await dao.listAllUsers();
   res.status(200).json(listOfUsers)
   });
-
 /*
 *Get Users filtered
 *Return json Users or Error
 *
 */
   routerUser.post("/filterUser",async function(req,resp) {
+   
     const filters = req.body
     const user  =await  dao.filterUser(filters)
     resp.json({user:user})
@@ -82,9 +81,11 @@ routerUser.post("/createUser", registerUserValidationRules(), async function(req
 
     // Calcula la edad del usuario
     let ageUser: number = calculateAge(age);
+    console.log(ageUser);
 
     // Crea el usuario en la base de datos
     const user = await dao.createUser(name, surname, age, email, phone, img ,rol,status,password);
+  
     
     // Devuelve una respuesta exitosa
     return resp.status(201).json({
@@ -108,6 +109,8 @@ routerUser.post("/createUser", registerUserValidationRules(), async function(req
     return resp.status(500).json({ error: "Internal server error" });
   }
 });
+
+
 
 const tocken = new TokenGenerator();
 routerUser.post("/loginUser", async function(req: any, resp: any) {
