@@ -129,15 +129,18 @@ TrainingRouter.post("/delete",registerTrainingValidationRules(),async(req:any, r
 })
 
 TrainingRouter.post("/filterBydate",async (req, res) => {
-    const {dateInit,dateEnd} = req.body;
+    const {date} = req.body;
+    console.log(date)
     try {
-        const trainings = await dao.getBydates(dateInit, dateEnd);
+        const trainings = await dao.getBydates(date);
+        console.log(trainings)
         if (trainings) {
             let response = {
                 status:"success",
                 message:"Training list",
                 trainings:trainings
             }
+            
             res.status(200).json(response);
         }else{
             let response = {
@@ -157,8 +160,79 @@ TrainingRouter.post("/filterBydate",async (req, res) => {
         res.status(500).json(response);
         
     }
+})
 
-    
+
+/**
+ * Insert user in Training
+ * @param request body Json
+ * @returns Json response
+ */
+TrainingRouter.post("/insertUserTraining",async (req, res) => {
+    try {
+         const {userId, trainingId} = req.body;
+         await dao.insertUserTraining(userId, trainingId);
+         let response = {
+             status:"success",
+             message:"Training created",
+         }
+         return res.status(200).json(response);
+    } catch (error) {
+        let response = {
+            status:"error",
+            message:"Error creating the training",
+            error:error
+        }
+        return res.status(500).json(response);
+    }
+})
+
+TrainingRouter.post("/userTraining",async (req, res) => {
+    try {
+        const {userId} = req.body;
+        const trainings = await dao.listTrainingUsers(userId);
+        let response = 
+        {status:"success",
+        message:"Training list",
+        trainings:trainings}
+        return res.status(200).json(response);
+    } catch (error) {
+        let response = {
+            status:"error",
+            message:"Error listing the trainings",
+            error:error
+        }
+        return res.status(500).json(response);
+        
+    }
+}
+)
+
+/*
+* List the user in a training
+* @param idTraining string
+* @ Return json response
+*/
+
+TrainingRouter.post("/trainingUser",async (req, res) => {
+    try {
+        const {idTraining} = req.body;
+        const users = await dao.listUsersTraining(idTraining);
+        let response = {
+            status:"success",
+            message:"Training list",
+            users:users
+        }
+        return res.status(200).json(response);
+    } catch (error) {
+        let response = {
+            status:"error",
+            message:"Error listing the trainings",
+            error:error
+        }
+        return res.status(500).json(response);
+    }
+
 })
 
 
