@@ -7,10 +7,10 @@ class User{
     surname:string;
     age:number;
     email:string;
-    rol:string;
+    rol:string | null;
     phone:string;
-    status:string;
-    img:string;
+    status:string | null;
+    img:string | null;
     password:string;
 
     constructor(name:string,surname:string,age:number,email:string,rol:string,phone:string,status:string,password:string)
@@ -24,6 +24,8 @@ class User{
        this.status = status;
        this.password = password;
     }
+
+
     /*
     * Set the date of user
     * param birthday

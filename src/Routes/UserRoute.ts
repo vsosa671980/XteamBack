@@ -4,6 +4,7 @@ import { body, validationResult } from 'express-validator';
 import {checkIfEmailExists, registerUserValidationRules } from '../helpers/validatorHelper'
 import { calculateAge } from "../utils/utils";
 import { TokenGenerator } from "../services/tocken";
+import User from "../models/user/User";
 
 //Create Router Object
 const routerUser = Router();
@@ -61,34 +62,26 @@ routerUser.post("/findById", async function(req, resp) {
 * Create a new user and save in the database
 * return json respond or error
 */
-routerUser.post("/createUser", registerUserValidationRules(), async function(req: any, resp: any) {
+routerUser.post("/createUser", registerUserValidationRules(),checkIfEmailExists, async function(req: any, resp: any) {
   try {
-    // Verifica si el correo electrónico ya existe
-   // const emailExist = await checkIfEmailExists(req, resp);
-    //if (emailExist) {
-     // return; // Return the response from Check
-    //}
-    
-    // valida el cuerpo de la solicitud
+  
+    // Validate the data from client
     const errors = validationResult(req);
+    //Check errors in data entry
     if (!errors.isEmpty()) {
       return resp.status(400).json({ errors: errors.array() });
     }
-
     // Extrae los datos del cuerpo de la solicitud
-    const { name, surname, age, email, phone, img ,rol,status,password} = req.body;
-    
-
+    const { name, surname, age, email, phone, img ,password} = req.body;
     // Calcula la edad del usuario
     let ageUser: number = calculateAge(age);
-    console.log(ageUser);
-
+    let rol = "user";
+    let status = "withoutSubscription";
     // Crea el usuario en la base de datos
     const user = await dao.createUser(name, surname, age, email, phone, img ,rol,status,password);
-  
-    
     // Devuelve una respuesta exitosa
     return resp.status(201).json({
+      status: "success",
       message: "User created successfully",
       user: {
         name,
@@ -122,11 +115,50 @@ routerUser.post("/loginUser", async function(req: any, resp: any) {
    resp.status(200).json(responsePasswords);
 }
 );
+
 routerUser.post("/loginTocken",tocken.checkToken, async function(req: any, resp: any) {
   //Set the body of the request
    resp.json({
     "message":"pass"
    })
+})
+
+routerUser.post("/register",registerUserValidationRules(),checkIfEmailExists, async function(req: any, resp: any) {
+
+  try {
+    const errors = validationResult(req);
+    //Check errors in data entry
+    if (!errors.isEmpty()) {
+      return resp.status(400).json({ errors: errors.array() });
+    }
+    // Extrae los datos del cuerpo de la solicitud
+    const { name, surname, age, email, phone, img ,password} = req.body;
+    // Calcula la edad del usuario
+    const userData = {
+      name:name,
+      surname:surname,
+      age:age,
+      email:email,
+      phone:phone,
+      img:img,
+    }
+
+    let response = {
+      status:"success",
+      message:"Data of user",
+      user:userData
+    }
+    return response;
+     
+  } catch (error) {
+    let response = {
+      status:"error",
+      message:"Error creating the user",
+      error:error
+    }
+    return response;
+  }
+
 })
 
 export{routerUser}

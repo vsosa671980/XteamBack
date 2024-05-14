@@ -25,7 +25,15 @@ const registerUserValidationRules = () => {
   ];
 };
 
-const checkIfEmailExists = async (req: Request, resp: Response) => {
+
+/**
+ * Middleware for checking if email exists
+ * @param req 
+ * @param resp 
+ * @param next 
+ * @returns 
+ */
+const checkIfEmailExists = async (req: Request, resp: Response,next:any) => {
   try {
     const correo = req.body.email;
     const emailRequest = { email: correo };
@@ -36,12 +44,12 @@ const checkIfEmailExists = async (req: Request, resp: Response) => {
     if (user) {
       // Si el correo electrónico está registrado, devuelve un error
       return resp.status(400).json({
+        status:"error",
         message: "This email is already registered",
-        status: "error"
       });
     } else {
       // Si el correo electrónico no está registrado, devuelve éxito
-      return false;
+      return next();
     }
   } catch (error) {
     // Maneja cualquier error que ocurra durante la búsqueda del correo electrónico

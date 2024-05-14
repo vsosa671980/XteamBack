@@ -7,17 +7,16 @@ import { DecodedToken } from '../interfaces/DecodedToken';
 import { env } from 'process';
 dotenv.config();
 
- /**
-     * Clase for generate object token
- */
-class TokenGenerator{
-    // Scret key for generate token
-        secretKey: string
-    /**
-     * Crea una instancia de TokenGenerator.
+
+/**
+     * Create new instance of token
      * @param {object} payload - La información que se incluirá en el token.
      * @param {string} secretKey - La clave secreta para firmar el token.
      */
+class TokenGenerator{
+  
+        secretKey: string
+    
     constructor(){
           const secret = process.env.TOCKEN_SECRET;
           if (!secret) {
@@ -28,14 +27,15 @@ class TokenGenerator{
     }
      /**
      * Genera un token JWT utilizando el payload y la clave secreta proporcionados.
+     * @Param {object} payload
      * @returns {string} El token JWT generado.
-     * .
-     * @private
+     * 
      */
     setToken(payload:object):string{
         const options = {
             expiresIn: '1h' // Token expirará en 1 hora desde la emisión
           };
+        //Create token 
         const token =  jwt.sign(payload,this.secretKey,options);
         return token;
     }
@@ -50,24 +50,28 @@ class TokenGenerator{
         // Obtener el token
 
         let tokenReceived: string | undefined;
-        
+        // Check the headers
         if (req.headers.authorization) {
+            //Get the token from headers.authorization
             tokenReceived = req.headers.authorization.split(" ")[1]; 
         } else {     
             return res.status(401).json({ mensaje: 'Token not Supply error' });
         }
-        // Revisar el token
+        // 
         try {
             // Verificar el token
             let result: DecodedToken | undefined;
             if (tokenReceived) {
                 //const decoded = jwt.verify(tokenReceived, this.secretKey) as DecodedToken;
+                // Check if token is valid
                 let decoded= jwt.verify(tokenReceived, this.secretKey)
                 console.log(decoded)
                 if (typeof decoded !== "string"){
                      result = decoded as DecodedToken;
                      let rol = result.rol
-                     console.log(rol)
+                     let idUser = result.userId
+                     let name = result.name
+                     console.log(rol,idUser,name)
                 }
                 if(result !== undefined){
                     let rol = result.rol

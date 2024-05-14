@@ -7,6 +7,7 @@ import { routerUser } from './Routes/UserRoute';
 import cors from 'cors';
 import { createTablesDb } from './database/migrations/queriesDatabase_01';
 import { TrainingRouter } from './Routes/TrainingRoutes';
+import { routerPayment } from './Routes/paymentRoute';
 
 
 const app = express();
@@ -20,6 +21,7 @@ app.use(express.json());
 //Routes
 app.use("/user",routerUser)
 app.use("/training",TrainingRouter)
+app.use("/payment",routerPayment)
 
 
 //createTablesDb();
@@ -39,7 +41,7 @@ async function testConnection() {
   }
 }
 testConnection();
-
+ 
 
 app.listen(PORT, () => {
   console.log(`Servidor escuchando en el puerto ${PORT}`);
