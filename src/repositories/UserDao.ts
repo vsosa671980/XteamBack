@@ -13,11 +13,19 @@ class UserDao implements UserInterface{
 
     conn:any
     constructor(){
-       this.getConnection().then(connectionDB => {
-           this.conn = connectionDB
-        })
+      this.init()
     }
     
+    async init() {
+        this.conn = await this.getConnection();
+    }
+
+    async ensureConnection() {
+        if (!this.conn) {
+            this.conn = await this.getConnection();
+        }
+    }
+
     async createUser(
         name: string,
         surname: string,
@@ -28,6 +36,7 @@ class UserDao implements UserInterface{
         rol:string,
         status:string,
         password:string){
+            await this.ensureConnection();
           
             try {
 
@@ -51,6 +60,7 @@ class UserDao implements UserInterface{
                   updated = ?
                   WHERE 
                   idUser = ?
+                 
               `, [name, surname, edad, email, phone, img, dateUpdated, id]);
                     
                 }else{
@@ -79,11 +89,30 @@ class UserDao implements UserInterface{
                 
             }
     }
+
+    async SetTokenVerification (email:string,token:string){
+        console.log(email)
+        await this.ensureConnection();
+        let user = await this.findUSerByEmail(email)
+        console.log(user)
+        if(user){
+            console.log(user.tockenVerification)
+            let idUser = user.idUser
+            let dateUpdated = new Date();
+            const query = "UPDATE users SET updated = ?, tockenVerification = ? WHERE idUser = ?";
+            await this.conn.query(
+                query,[dateUpdated,token,idUser]
+            )
+            return true;
+        }
+        
+    }
      /*
      * List all the Users
      * Return json of users or error
      */
      async  listAllUsers() {      
+        await this.ensureConnection();
         try {
             const [userList] = await this.conn.query( `Select * from Users`);
             let response ={users:userList,responseStatus:"Ok"}
@@ -99,6 +128,7 @@ class UserDao implements UserInterface{
     *Return the list of uses paginated
     */
     async listUsersPaginates(numberPage:number){
+        await this.ensureConnection();
 
         const totalUsersResult = await this.conn.query(`SELECT count(*) AS total FROM Users`);
         const totalUsers = totalUsersResult[0][0].total;
@@ -125,6 +155,7 @@ class UserDao implements UserInterface{
  * Return json of user
  */
   async findUserById(id:number){
+    await this.ensureConnection();
     try {
         const [user] = await this.conn.query(`Select * FROM users Where idUser = ?`,[id])
         let response = {user:user};
@@ -135,8 +166,11 @@ class UserDao implements UserInterface{
   }
 
   async findUSerByEmail(email:string){
+    await this.ensureConnection();
+    console.log(email)
     try {
         const [user] = await this.conn.query(`Select * FROM users Where email = ? `,[email])
+        console.log(user)
         if (user.length !== 0) {
             return user[0]
         }else{
@@ -153,7 +187,9 @@ class UserDao implements UserInterface{
 * Return json users found compose by array of object users
 */
  async  filterUser(filters:object)
+ 
  {
+    await this.ensureConnection();
     let queryString = `SELECT * FROM Users WHERE `;
     //Create array for storage filters param
     const param:any[] = [];
@@ -187,6 +223,7 @@ class UserDao implements UserInterface{
     }
  }
  async login (passedEmail:string, passedPassword:string){
+    await this.ensureConnection();
     //Recive the email and password from the request
     const email = passedEmail;
     const password = passedPassword;

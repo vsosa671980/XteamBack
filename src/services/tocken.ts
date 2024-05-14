@@ -31,14 +31,16 @@ class TokenGenerator{
      * @returns {string} El token JWT generado.
      * 
      */
-    setToken(payload:object):string{
+    setToken(payload:object,expiration:string="1h"):string{
         const options = {
-            expiresIn: '1h' // Token expirará en 1 hora desde la emisión
+            expiresIn: expiration // Token expirará en 1 hora desde la emisión
           };
         //Create token 
         const token =  jwt.sign(payload,this.secretKey,options);
         return token;
     }
+    
+   
     /**
      * Create middleware for check tokens
      * @param req 
@@ -48,7 +50,6 @@ class TokenGenerator{
      */
     checkToken(req: Request, res: Response, next: NextFunction) {
         // Obtener el token
-
         let tokenReceived: string | undefined;
         // Check the headers
         if (req.headers.authorization) {
@@ -57,7 +58,6 @@ class TokenGenerator{
         } else {     
             return res.status(401).json({ mensaje: 'Token not Supply error' });
         }
-        // 
         try {
             // Verificar el token
             let result: DecodedToken | undefined;
@@ -91,7 +91,22 @@ class TokenGenerator{
             }
     }
     }
+
+    checkTokenVerification(token:string){
+
+        try{
+            let decoded= jwt.verify(token, this.secretKey) as DecodedToken;
+            if (decoded){
+                let idUser = decoded.userId
+            }
+
+        }catch{
+
+        }
+
+    }
 }
+
 
 
 export {TokenGenerator}

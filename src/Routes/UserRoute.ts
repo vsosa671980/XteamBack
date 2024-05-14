@@ -5,6 +5,7 @@ import {checkIfEmailExists, registerUserValidationRules } from '../helpers/valid
 import { calculateAge } from "../utils/utils";
 import { TokenGenerator } from "../services/tocken";
 import User from "../models/user/User";
+import { EmailVerification } from '../models/email/EmailDao';
 
 //Create Router Object
 const routerUser = Router();
@@ -160,5 +161,60 @@ routerUser.post("/register",registerUserValidationRules(),checkIfEmailExists, as
   }
 
 })
+
+// Ruta para enviar correo electrónico
+routerUser.post('/send-email',async (req:any, res:any) => {
+  //Obtein the email from the client
+  const {email} = req.body;
+  
+    try {
+      const payload = {
+        userId:50,
+      }
+      //Create the token
+      //Set the time of expiration
+       const timeExpiration = "0.15m";
+       // Create a new Token
+       const token = new TokenGenerator().setToken(payload,timeExpiration);
+       // -- Options for Mail --//
+       const subject = "Email Verification";
+       const text = "Pincha sobre el enlace para verificar el correo";
+       const html = `<a href="http://localhost:8000/user/verification?token=${token}" > Email Verificación</a>`;
+       const options = EmailVerification.setOption(email,subject,text,html)
+       //Save the token for verify the user for register
+       const daoUser = new UserDao();
+       const setTokenStatus = await  daoUser.SetTokenVerification (email,token);
+       console.log(setTokenStatus)
+       if (setTokenStatus){
+        EmailVerification.sendEmail(options)
+        res.status(200).json({
+         status: "success",
+         message: "Email sent successfully"
+          })
+       }
+     } catch (error:any) {
+       res.status(500).json({
+         status: "error",
+         message: error.message
+       })
+     }
+  });
+
+routerUser.get("/verification",(req:any,res:any) => {
+  const token = req.query.token;
+  
+  //check the token
+  const tokenService = new TokenGenerator()
+
+
+
+  //res.redirect('https://www.ejemplo.com');
+
+  res.json({
+    status:"Ok"
+  })
+
+})
+
 
 export{routerUser}
