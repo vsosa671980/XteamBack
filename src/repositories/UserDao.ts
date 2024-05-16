@@ -4,6 +4,7 @@ import { EncryptPassword } from "../utils/encryptPassword";
 import { json } from "sequelize";
 import { calculateAge } from "../utils/utils";
 import { TokenGenerator } from "../services/tocken";
+import { User } from "../models/user/User";
 
 /*
 * Class of User Dao
@@ -35,7 +36,10 @@ class UserDao implements UserInterface{
         img: string,
         rol:string,
         status:string,
-        password:string){
+        password:string,
+        verificated:string= "false",
+        dateVerification:Date | null = null
+    ){
             await this.ensureConnection();
           
             try {
@@ -58,10 +62,12 @@ class UserDao implements UserInterface{
                   phone = ?,
                   img = ?,
                   updated = ?
+                  verificated = ?
+                  dateVerification = ?
                   WHERE 
                   idUser = ?
                  
-              `, [name, surname, edad, email, phone, img, dateUpdated, id]);
+              `, [name, surname, edad, email, phone, img, dateUpdated, id,verificated,dateVerification]);
                     
                 }else{
                     //Create a new user and save to the database
@@ -91,12 +97,12 @@ class UserDao implements UserInterface{
     }
 
     async SetTokenVerification (email:string,token:string){
-        console.log(email)
+    
         await this.ensureConnection();
         let user = await this.findUSerByEmail(email)
-        console.log(user)
+      
         if(user){
-            console.log(user.tockenVerification)
+           
             let idUser = user.idUser
             let dateUpdated = new Date();
             const query = "UPDATE users SET updated = ?, tockenVerification = ? WHERE idUser = ?";
@@ -157,9 +163,8 @@ class UserDao implements UserInterface{
   async findUserById(id:number){
     await this.ensureConnection();
     try {
-        const [user] = await this.conn.query(`Select * FROM users Where idUser = ?`,[id])
-        let response = {user:user};
-        return response;
+        const [user]= await this.conn.query(`Select * FROM users Where idUser = ?`,[id])
+        return user[0]|| undefined;
     } catch (error) {
         let response = {status:"error",message:"Error finding User"}
     }
@@ -261,6 +266,18 @@ class UserDao implements UserInterface{
         return response;
     }
  }
+
+ async setVerificationUser(idUser:number){
+    try {
+        await this.ensureConnection();
+        const dateUpdate = new Date()
+        const verification = true;
+        const query = "UPDATE users SET verificated = ?,dateVerification = ? WHERE idUser = ?";
+        await this.conn.query(query,[verification,dateUpdate,idUser])
+    } catch (error:any) {
+        throw new Error(error.message)
+    }
+}
     /*
     * Get connection element of database
     * Return connection : Promise
@@ -269,6 +286,8 @@ class UserDao implements UserInterface{
         const connection = connectionDB.connect();
         return connection;
     }
+
+  
     
 }
 

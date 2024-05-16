@@ -1,15 +1,12 @@
 import express from 'express';
 import { Sequelize } from 'sequelize';
-import { TokenGenerator} from './services/tocken';
 import dotenv from 'dotenv';
 import { routerUser } from './Routes/UserRoute';
 import cors from 'cors';
 import { TrainingRouter } from './Routes/TrainingRoutes';
 import { routerPayment } from './Routes/paymentRoute';
-
 import bodyParser from 'body-parser';
-import { EmailVerification } from './models/email/EmailDao';
-import { UserDao } from './repositories/UserDao';
+import { subscriptionRouter } from './Routes/SubscriptionRoute';
 
 
 const app = express();
@@ -37,6 +34,8 @@ app.use(express.json());
 app.use("/user",routerUser)
 app.use("/training",TrainingRouter)
 app.use("/payment",routerPayment)
+app.use("/subscription",subscriptionRouter)
+
 
 
 //createTablesDb();

@@ -1,8 +1,8 @@
 import { calculateAge } from "../../utils/utils";
 
-class User{
+export class User{
 
-    idUSer:number;
+    idUser:number;
     name:string;
     surname:string;
     age:number;
@@ -12,6 +12,7 @@ class User{
     status:string | null;
     img:string | null;
     password:string;
+   
 
     constructor(name:string,surname:string,age:number,email:string,rol:string,phone:string,status:string,password:string)
     {
@@ -36,5 +37,3 @@ class User{
     }
 
 }
-
-export default  {User}

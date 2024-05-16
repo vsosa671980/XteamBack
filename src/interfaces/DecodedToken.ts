@@ -1,5 +1,5 @@
 export interface DecodedToken {
-    userId: number;
+    IdUser: number;
     rol: string;
     name:string;
 

@@ -1,10 +1,11 @@
 // Import the libraries
 import { Request, Response, NextFunction } from 'express';
 import jwt, { JwtPayload, Secret } from "jsonwebtoken";
-import { randomBytes } from 'crypto';
 import dotenv from 'dotenv';
 import { DecodedToken } from '../interfaces/DecodedToken';
-import { env } from 'process';
+import { UserDao } from '../repositories/UserDao';
+import { User } from '../models/user/User';
+
 dotenv.config();
 
 
@@ -69,7 +70,7 @@ class TokenGenerator{
                 if (typeof decoded !== "string"){
                      result = decoded as DecodedToken;
                      let rol = result.rol
-                     let idUser = result.userId
+                     let idUser = result.IdUser
                      let name = result.name
                      console.log(rol,idUser,name)
                 }
@@ -92,15 +93,30 @@ class TokenGenerator{
     }
     }
 
-    checkTokenVerification(token:string){
-
+    async checkTokenVerification(tokenReceived:string){
+       console.log(tokenReceived)
         try{
-            let decoded= jwt.verify(token, this.secretKey) as DecodedToken;
-            if (decoded){
-                let idUser = decoded.userId
-            }
-
-        }catch{
+            
+            let decoded= jwt.verify(tokenReceived, this.secretKey) as DecodedToken
+            //User Id received 
+            let IdUser = decoded.IdUser;     
+            // Get the the user
+            const userDao = new UserDao();
+            const user:User | undefined = await userDao.findUserById(IdUser);
+             // Check if user is found
+           if (user != undefined) {
+            console.log(user)
+            console.log("Usuario", user.idUser);
+            await userDao.setVerificationUser(user.idUser)
+            // Return the response as true if user is found and has a tokenVerification
+            return true
+        } 
+            // Check if user is foun
+            return false;
+           // Get the tokenVerification of the user
+           
+        }catch(error){
+            console.log('Error al verificar el token:', error);
 
         }
 

@@ -25,6 +25,21 @@ class connectionDB{
     }
  }
 
+ public static connection(){
+    try{
+     const connection =  mysql.createPool({
+         host: 'localhost',
+         user: 'root',
+         password:"123456",
+         database: 'xteam',
+    })
+    console.log("connected with mysql")
+    return connection;
+ }catch(error){
+     console.log(error);
+ }
+}
+
 }
 
 export {connectionDB}

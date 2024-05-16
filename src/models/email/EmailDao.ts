@@ -22,8 +22,7 @@ export class EmailVerification{
        }
 
     static setOption(to:string,subject:string,text:string,html:string){
-        console.log(text)
-        console.log(html)
+ 
         const options = {
             from: process.env.USERMAIL,
             to:to,

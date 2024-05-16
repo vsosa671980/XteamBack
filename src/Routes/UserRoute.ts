@@ -4,7 +4,7 @@ import { body, validationResult } from 'express-validator';
 import {checkIfEmailExists, registerUserValidationRules } from '../helpers/validatorHelper'
 import { calculateAge } from "../utils/utils";
 import { TokenGenerator } from "../services/tocken";
-import User from "../models/user/User";
+import {User} from "../models/user/User";
 import { EmailVerification } from '../models/email/EmailDao';
 
 //Create Router Object
@@ -169,13 +169,13 @@ routerUser.post('/send-email',async (req:any, res:any) => {
   
     try {
       const payload = {
-        userId:50,
+        IdUser:50,
       }
       //Create the token
       //Set the time of expiration
-       const timeExpiration = "0.15m";
+       
        // Create a new Token
-       const token = new TokenGenerator().setToken(payload,timeExpiration);
+       const token = new TokenGenerator().setToken(payload);
        // -- Options for Mail --//
        const subject = "Email Verification";
        const text = "Pincha sobre el enlace para verificar el correo";
@@ -183,15 +183,15 @@ routerUser.post('/send-email',async (req:any, res:any) => {
        const options = EmailVerification.setOption(email,subject,text,html)
        //Save the token for verify the user for register
        const daoUser = new UserDao();
-       const setTokenStatus = await  daoUser.SetTokenVerification (email,token);
-       console.log(setTokenStatus)
-       if (setTokenStatus){
+       //const setTokenStatus = await  daoUser.SetTokenVerification (email,token);
+
+      
         EmailVerification.sendEmail(options)
         res.status(200).json({
          status: "success",
          message: "Email sent successfully"
-          })
-       }
+        })
+       
      } catch (error:any) {
        res.status(500).json({
          status: "error",
@@ -200,20 +200,21 @@ routerUser.post('/send-email',async (req:any, res:any) => {
      }
   });
 
-routerUser.get("/verification",(req:any,res:any) => {
+routerUser.get("/verification",async (req:any,res:any) => {
   const token = req.query.token;
-  
+
   //check the token
   const tokenService = new TokenGenerator()
+  const checkToken = await tokenService.checkTokenVerification(token)
 
-
-
-  //res.redirect('https://www.ejemplo.com');
-
-  res.json({
-    status:"Ok"
-  })
-
+  if(checkToken){
+    res.redirect('https://www.google.com');
+  }else{
+    res.json({
+      status:"error",
+      message:"User not registered"
+    })
+  }
 })
 
 
