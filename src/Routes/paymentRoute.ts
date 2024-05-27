@@ -1,7 +1,7 @@
 import { Router } from "express";
 
 import { Payment } from "../models/payments/payment";
-import { PaymentsDao } from "../models/payments/paymentsDao";
+import { PaymentsDao } from "../repositories/paymentsDao";
 
 export const routerPayment = Router();
 
@@ -16,6 +16,31 @@ routerPayment.post("/create",async (req, res) => {
         return res.json({
             status:"success",
             message:"Payment created successfully"
+        })
+    } catch (error:any) {
+        let response = {
+            status:"Error",
+            message:error.message
+        }
+        return res.json(response)
+    }
+})
+
+
+
+routerPayment.post("/listPaymentUser",async (req, res) => {
+
+    const {idUser} = req.body
+
+    try {
+     
+        const dao = new PaymentsDao()
+        const payments = await dao.showPaymentsUser(idUser)
+        console.log(payments)
+        return res.json({
+            status:"success",
+            message:"Payment list",
+            userPayments:payments
         })
     } catch (error:any) {
         let response = {

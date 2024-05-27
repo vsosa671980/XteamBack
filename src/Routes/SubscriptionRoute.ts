@@ -1,9 +1,7 @@
 import { Router } from "express";
 
-import { Payment } from "../models/payments/payment";
-import { PaymentsDao } from "../models/payments/paymentsDao";
 import { Subscription } from "../models/subscription/Subscription";
-import { SubscriptionDao } from "../models/subscription/SubscriptionDao";
+import { SubscriptionDao } from "../repositories/SubscriptionDao";
 
 export const subscriptionRouter = Router();
 
@@ -69,6 +67,33 @@ subscriptionRouter.post("/update",async(req:any,res:any) => {
            status:"success",
            message:" Updated successfully",
            subscription:subscriptionUPdated
+       })
+   } catch (error:any){ 
+       let response = {
+           status:"Error",
+           message:error.message
+       }
+       return res.json(response)
+   }
+})
+
+
+subscriptionRouter.post("/list",async(req:any,res:any) => {
+     const{idUser,status} = req.body
+ 
+   try {
+       const dao = new SubscriptionDao();
+       const subscription = await dao.findUserSubscriptions(idUser,status)
+       console.log(subscription)
+
+       if(!subscription){
+        return res.json({status:"error",message:"Subscription not found"})
+       }
+     
+       return res.json({
+           status:"success",
+           message:" list",
+           subscription:subscription
        })
    } catch (error:any){ 
        let response = {

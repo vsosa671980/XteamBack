@@ -5,100 +5,21 @@ import { json } from "sequelize";
 import { calculateAge } from "../utils/utils";
 import { TokenGenerator } from "../services/tocken";
 import { User } from "../models/user/User";
+import { Repository } from "../database/queriesModels";
 
 /*
 * Class of User Dao
 *
 */
-class UserDao implements UserInterface{
+class UserDao extends Repository{
 
     conn:any
+    tableName:string = "users"
     constructor(){
-      this.init()
+        super();
     }
-    
-    async init() {
-        this.conn = await this.getConnection();
-    }
-
-    async ensureConnection() {
-        if (!this.conn) {
-            this.conn = await this.getConnection();
-        }
-    }
-
-    async createUser(
-        name: string,
-        surname: string,
-        age: string,
-        email: string,
-        phone: string,
-        img: string,
-        rol:string,
-        status:string,
-        password:string,
-        verificated:string= "false",
-        dateVerification:Date | null = null
-    ){
-            await this.ensureConnection();
-          
-            try {
-
-                //Create object witch the email received
-                let user = await this.findUSerByEmail(email)
-            //Check if the user Exist
-            //If exist update the user
-                if(user){
-                    let id = user.idUser
-                    let dateUpdated = new Date();
-                    const edad = calculateAge(age);
-                    await this.conn.query(`
-                   UPDATE users 
-                   SET 
-                   name = ?,
-                  surname = ?,
-                  age = ?, 
-                  email = ?,
-                  phone = ?,
-                  img = ?,
-                  updated = ?
-                  verificated = ?
-                  dateVerification = ?
-                  WHERE 
-                  idUser = ?
-                 
-              `, [name, surname, edad, email, phone, img, dateUpdated, id,verificated,dateVerification]);
-                    
-                }else{
-                    //Create a new user and save to the database
-                    const created= new Date();
-                    //Password
-                    const passwordEncryptedUSer = await EncryptPassword.encrypt(password);
-                    //Set Rol
-                    //const passwordEncryptedUSer = password 
-                    const edad = calculateAge(age);
-
-                    if(rol == ""){
-                        rol = "user"
-                    }
-
-                    status = "active";
-                    await this.conn.query(
-                        "INSERT INTO Users (name, surname, age, email, phone,status,rol,password,img,created) VALUES (?, ?, ?, ?, ?, ?,?,?,?,?);",
-                        [name, surname, edad, email, phone,status,rol,passwordEncryptedUSer,img,created]
-                    );
-                    
-                }             
-            } catch (error) {
-                console.log(error)
-                throw new Error("Error updating  or creating the user");
-                
-            }
-    }
-
+ 
     async SetTokenVerification (email:string,token:string){
-    
-        await this.ensureConnection();
         let user = await this.findUSerByEmail(email)
       
         if(user){
@@ -110,15 +31,14 @@ class UserDao implements UserInterface{
                 query,[dateUpdated,token,idUser]
             )
             return true;
-        }
-        
+        }     
     }
      /*
      * List all the Users
      * Return json of users or error
      */
      async  listAllUsers() {      
-        await this.ensureConnection();
+ 
         try {
             const [userList] = await this.conn.query( `Select * from Users`);
             let response ={users:userList,responseStatus:"Ok"}
@@ -134,12 +54,12 @@ class UserDao implements UserInterface{
     *Return the list of uses paginated
     */
     async listUsersPaginates(numberPage:number){
-        await this.ensureConnection();
-
         const totalUsersResult = await this.conn.query(`SELECT count(*) AS total FROM Users`);
+        console.log(totalUsersResult)
         const totalUsers = totalUsersResult[0][0].total;
         const actualPage = numberPage;
         const limit = 10;
+        //Init of element
         const offest = (actualPage - 1 ) * limit;
         const totalPages = Math.ceil(totalUsers / limit);
 
@@ -161,7 +81,7 @@ class UserDao implements UserInterface{
  * Return json of user
  */
   async findUserById(id:number){
-    await this.ensureConnection();
+
     try {
         const [user]= await this.conn.query(`Select * FROM users Where idUser = ?`,[id])
         return user[0]|| undefined;
@@ -171,7 +91,6 @@ class UserDao implements UserInterface{
   }
 
   async findUSerByEmail(email:string){
-    await this.ensureConnection();
     console.log(email)
     try {
         const [user] = await this.conn.query(`Select * FROM users Where email = ? `,[email])
@@ -194,7 +113,7 @@ class UserDao implements UserInterface{
  async  filterUser(filters:object)
  
  {
-    await this.ensureConnection();
+    
     let queryString = `SELECT * FROM Users WHERE `;
     //Create array for storage filters param
     const param:any[] = [];
@@ -228,15 +147,22 @@ class UserDao implements UserInterface{
     }
  }
  async login (passedEmail:string, passedPassword:string){
-    await this.ensureConnection();
-    //Recive the email and password from the request
+    //Get the email and password from the request
     const email = passedEmail;
     const password = passedPassword;
     //check if the user exist
     const user = await this.findUSerByEmail(email);
-    console.log(user)
+    console.log(user.verificated)
+    if(user.verificated === "false"){
+        let response = {
+            status:"errorVerification",
+            message:"User not verificated"
+        }
+        return response;
+    }
      //Check if the user exist
     if(user){
+        //Check the password
         const isPasswordCorrect = await EncryptPassword.checkPassword(password, user.password);
         //Check if the password is correct
         if(isPasswordCorrect){
@@ -245,13 +171,17 @@ class UserDao implements UserInterface{
             const payload = {
                 "userid":user.idUser,
                 "name":user.name,
-                "rol":user.surname
+                "rol":user.rol,
+                "verificated": user.verificated,
+                "status":user.status
             }
             //Create a tockenService class
             const tockenService = new  TokenGenerator();
             // Create a Token
             const tocken = tockenService.setToken(payload);
-            let response = {status:"ok",user:user,tocken : tocken}
+            let response = {
+                status:"success",
+                token : tocken}
             //Return response
             return response;
         }else{
@@ -266,10 +196,9 @@ class UserDao implements UserInterface{
         return response;
     }
  }
-
  async setVerificationUser(idUser:number){
     try {
-        await this.ensureConnection();
+       
         const dateUpdate = new Date()
         const verification = true;
         const query = "UPDATE users SET verificated = ?,dateVerification = ? WHERE idUser = ?";
@@ -278,6 +207,27 @@ class UserDao implements UserInterface{
         throw new Error(error.message)
     }
 }
+
+/*
+* Get the user with its payment
+* @param{idUser} string
+* Return Array of Object or Trow error
+*/
+async getPaymentsUSer(idUser:string){
+    try{
+        
+        // Query
+        const query ="SELECT * FROM users join payments on users.idUser = payments.idUser WHERE users.idUser = ? "
+        //Do the query
+        const [user] = await this.conn.query(query,[idUser])
+        // return the user in Array-Object
+        return user;
+    }catch(error:any){
+        console.log(error)
+        throw new Error("error")
+    }
+}
+
     /*
     * Get connection element of database
     * Return connection : Promise
@@ -287,6 +237,7 @@ class UserDao implements UserInterface{
         return connection;
     }
 
+ 
   
     
 }

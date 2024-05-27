@@ -7,6 +7,7 @@ import { TrainingRouter } from './Routes/TrainingRoutes';
 import { routerPayment } from './Routes/paymentRoute';
 import bodyParser from 'body-parser';
 import { subscriptionRouter } from './Routes/SubscriptionRoute';
+import { UserVerificated } from './middlewares/UserVerification';
 
 
 const app = express();
@@ -19,6 +20,7 @@ dotenv.config();
 // Middleware para analizar el cuerpo de la solicitud
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
+
 
 
 

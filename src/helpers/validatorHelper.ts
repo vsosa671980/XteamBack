@@ -37,7 +37,6 @@ const checkIfEmailExists = async (req: Request, resp: Response,next:any) => {
   try {
     const correo = req.body.email;
     const emailRequest = { email: correo };
-    
     // Busca si el correo electrónico ya está registrado
     let user = await dao.filterUser(emailRequest);
     

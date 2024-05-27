@@ -1,37 +1,19 @@
 import { connectionDB } from "../database/connection";
 import { calculateAge, calculateWeek } from "../utils/utils";
 
+import { Repository } from "../database/queriesModels";
 /*
 * Clase Training Dao
 *
 */
-class TrainingDao {
+class TrainingDao extends Repository {
     
     conn:any
-
+    tableName:string = "trainings"
     constructor(){
-       this.getConnection().then(connectionDB => {
-           this.conn = connectionDB
-        })
+        super();
     }
-    
-    async createTraining(
-        type: string,
-        date: string,
-        location: string,
-        description: string,
-        image: string
-    ){
-        try {
-            await this.conn.query(`
-                INSERT INTO Trainings (type, date, location, description, img)
-                VALUES (?, ?, ?, ?, ?);
-            `, [type, date, location, description, image]);
-        } catch (error) {
-            console.log(error);
-            throw new Error("Error creating the training");
-        }
-    }
+ 
 
 /**
  * Find training by id
@@ -56,51 +38,6 @@ async findByid(id: string){
   * @param location :strin
   * @param img:stringg
   */
- async updateTraining(id: string, type: string, date: string, location: string, description: string, image: string){
-    try {
-        await this.conn.query(`
-            UPDATE Trainings
-            SET type =?, date =?, location =?, description =?, img =?
-            WHERE idTraining =?;
-        `, [type, date, location, description, image, id]);
-    } catch (error) {
-        throw new Error(`Error updating the training: ${error}`);
-    }
-}
-
-/**
- * Returns list of trainings * 
- * @returns {Array} training or Error
- */
-    async listAllTrainings() {      
-        try {
-            const [trainingList] = await this.conn.query( `SELECT * FROM Trainings`);
-            if (trainingList.length > 0) {
-                trainingList.forEach((training: { date: string | number | Date; }) => {
-                    training.date = new Date(training.date).toLocaleDateString();
-                })
-            console.log(trainingList)
-            return trainingList;
-            }
-        } catch (error) {
-            throw new Error(`Error listing all training: ${error}`); 
-        }
-    }
-
-    async listTrainingsPaginated(numberPage:number){
-        const limit = 7;
-        const offest = (numberPage - 1 ) * limit;
-
-        try {
-            const [rowTrainings] = await this.conn.query(
-                `SELECT * FROM Training LIMIT ? OFFSET ?`,
-                [limit, offest]
-            );
-            return { status: "ok", trainings: rowTrainings };
-        } catch (error) {
-            return { status: "error", message: "Error listing the trainings" };
-        }
-    }
 
 
     async filterTrainings(filters:object) {
@@ -132,19 +69,6 @@ async findByid(id: string){
     }
 
     /**
-     * Delete a trained
-     * @param id Training
-     */
-    async deleTraining(id:string){
-        try {
-            await this.conn.query(`DELETE FROM Trainings WHERE idTraining = ?`,[id]);
-        } catch (error) {
-            throw new Error(`Error deleting the training: ${error}`);
-        }
-
-    }
-
-    /**
      * Find training between dates
      * @param date : string
      * @ return object with training and week object
@@ -153,11 +77,12 @@ async findByid(id: string){
     async getBydates(dateInit:string){
 
         try {
+            //Create a new Date Object, current Date
             let today  = new Date();
+            //Check i date is received in the parameter
             if (dateInit){
                 today = new Date(dateInit);
             }
-            
             //Get the week ,first day of the week and last day of the week
             const weekData = calculateWeek(today);
             let week = weekData.week;

@@ -49,7 +49,7 @@ class TokenGenerator{
      * @param next 
      * @returns 
      */
-    checkToken(req: Request, res: Response, next: NextFunction) {
+    checkToken(req: Request, res: Response ) {
         // Obtener el token
         let tokenReceived: string | undefined;
         // Check the headers
@@ -60,28 +60,16 @@ class TokenGenerator{
             return res.status(401).json({ mensaje: 'Token not Supply error' });
         }
         try {
-            // Verificar el token
-            let result: DecodedToken | undefined;
+            // Create the payloas object
+            let payload: DecodedToken | undefined;
             if (tokenReceived) {
-                //const decoded = jwt.verify(tokenReceived, this.secretKey) as DecodedToken;
-                // Check if token is valid
                 let decoded= jwt.verify(tokenReceived, this.secretKey)
                 console.log(decoded)
+                //Check and return the payload
                 if (typeof decoded !== "string"){
-                     result = decoded as DecodedToken;
-                     let rol = result.rol
-                     let idUser = result.IdUser
-                     let name = result.name
-                     console.log(rol,idUser,name)
+                     payload = decoded as DecodedToken;
+                     return payload
                 }
-                if(result !== undefined){
-                    let rol = result.rol
-                    console.log(rol)    
-                    next();
-                }
-
-            } else {
-                return res.status(401).json({ mensaje: 'Token not Supply' });
             }
         } catch (error) {
             console.log('Error al verificar el token:', error);
@@ -96,25 +84,28 @@ class TokenGenerator{
     async checkTokenVerification(tokenReceived:string){
        console.log(tokenReceived)
         try{
-            
             let decoded= jwt.verify(tokenReceived, this.secretKey) as DecodedToken
             //User Id received 
-            let IdUser = decoded.IdUser;     
+            console.log("Payload", decoded)
+            let IdUser = decoded.IdUser;
+            console.log("User del Usuario" , IdUser)     
             // Get the the user
             const userDao = new UserDao();
             const user:User | undefined = await userDao.findUserById(IdUser);
              // Check if user is found
+          
            if (user != undefined) {
             console.log(user)
             console.log("Usuario", user.idUser);
-            await userDao.setVerificationUser(user.idUser)
-            // Return the response as true if user is found and has a tokenVerification
-            return true
-        } 
-            // Check if user is foun
-            return false;
-           // Get the tokenVerification of the user
-           
+            if (user.idUser) {
+                // Update the camp of verified in the user
+                await userDao.setVerificationUser(user.idUser)
+            }
+            return true;
+          }
+
+          return false;
+                  
         }catch(error){
             console.log('Error al verificar el token:', error);
 

@@ -1,35 +1,33 @@
-import {connectionDB} from "../database/connection"
 
- export class PaymentsDao{
+import { Repository } from "../database/queriesModels";
 
-    conn:any
-    constructor(){
-       this.getConnection().then(connectionDB => {
-           this.conn = connectionDB
-        })
+
+
+export class PaymentsDao extends Repository{
+
+   tableName:string = "payments"
+   constructor(){
+       super();
+   }
+
+   async showPaymentsUser(idUser:string){
+
+    try{
+
+        const query = `SELECT users.name,users.surname,payments.type,payments.date,subscription.title FROM users
+        JOIN payments ON users.idUser = payments.idUser
+        JOIN subscription ON  payments.idPay = subscription.id
+         WHERE users.idUser = ?
+         order By payments.date DESC;`
+
+         const [userPayments] = await this.conn.query(query,idUser)
+       
+         return userPayments;
+
+    }catch{
+
     }
+   }
 
-
-    /*
-    * Create a new Payment
-    * @param{idUser}:string
-    * @param{type}:string
-    *
-    */
-    async createPayment(IdUser:string,type:string){
-        try {
-            const query = `INSERT INTO payments (date,IdUser,type) VALUES (?,?,?)`
-            const date = new Date()
-            await this.conn.query(query,[date,IdUser,type])
-        } catch (error:any) {
-            throw new Error(error.message)
-        }
-    }
-
-
-
-    getConnection(){
-        const connection = connectionDB.connect();
-        return connection;
-    }
 }
+

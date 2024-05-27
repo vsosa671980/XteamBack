@@ -2,6 +2,7 @@ import { Router, response, } from "express";
 import { TrainingDao } from "../repositories/TrainingDao";
 import { registerTrainingValidationRules } from "../helpers/ValidatorTraining";
 import { validationResult } from 'express-validator';
+import {Training} from "../models/train/Training"
 
 //Create the Router Object
 const TrainingRouter = Router();
@@ -13,9 +14,11 @@ const dao = new TrainingDao();
 /**
  * Create the training
  */
-TrainingRouter.get("/listAll", async (req, res) => {
+TrainingRouter.post("/listPaginates", async (req, res) => {
+
+    const {numberPage} = req.body
     try {
-        const training = await dao.listAllTrainings();
+        const training = await dao.listPaginates(numberPage);
         let response = {
             status:"success",
             message:"Training list",
@@ -37,46 +40,45 @@ TrainingRouter.get("/listAll", async (req, res) => {
  * Create the traiing and save in database
  *
  */
-
-TrainingRouter.post("/createTraining",registerTrainingValidationRules(), async (req:any, res:any) => {
+TrainingRouter.post("/create",registerTrainingValidationRules(), async (req:any, res:any) => {
     try {
         // valida el cuerpo de la solicitud
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
-        const {type,date,location,description,img} = req.body;
-        const training = await dao.createTraining(type,date,location,description,img);
+        const {type,date,location,
+            description,
+            img} = req.body;
+        const training = new Training(type,date,location,description,img)
+            await  dao.create(training)
+            return res.json({
+                status:"success",
+                message:"Payment created successfully"
+            })
+    } catch (error:any) {
         let response = {
-            status:"success",
-            message:"Training created",
-            training:training
+            status:"Error",
+            message:error.message
         }
-        res.status(200).json(response);
-    } catch (error) {
-        let response = {
-            status:"error",
-            message:"Error creating the training",
-            error:error
-        }
-        res.status(500).json(response);
-    }
+        return res.json(response) 
+       }
+    })
 
-})
-
-TrainingRouter.post("/update",registerTrainingValidationRules(),async(req:any, res:any) => {
+TrainingRouter.post("/update",async(req:any, res:any) => {
 
     try {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
           return res.status(400).json({ errors: errors.array() });
         }
-        const {idTraining,type,date,location,description,img} = req.body;
-        const training = await dao.updateTraining(idTraining,type,date,location,description,img);
+        const {id} = req.body;
+        const {data} = req.body;
+        const subscription = dao.update(id,data)
         let response = {
             status:"success",
             message:"Training updated successfully",
-            training:training
+         
         }
         res.status(200).json(response);
         
@@ -107,7 +109,7 @@ TrainingRouter.post("/delete",registerTrainingValidationRules(),async(req:any, r
                 console.log("Entro en el if")
                 return res.status(400).json({status:"error", message: "Training not found" });
             }
-            const trainingDeleted =  await dao.deleTraining(idTraining);
+            const trainingDeleted =  await dao.delete(idTraining);
             let response = {
                 status:"success",
                 message:"Training deleted successfully",

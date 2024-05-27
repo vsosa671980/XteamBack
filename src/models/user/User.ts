@@ -1,29 +1,35 @@
+import { EncryptPassword } from "../../utils/encryptPassword";
 import { calculateAge } from "../../utils/utils";
 
 export class User{
 
-    idUser:number;
+    idUser?:number;
     name:string;
     surname:string;
+    secondSurname:string;
     age:number;
     email:string;
     rol:string | null;
     phone:string;
     status:string | null;
     img:string | null;
-    password:string;
+    password:string = "";
+    verificated:boolean = false;
    
 
-    constructor(name:string,surname:string,age:number,email:string,rol:string,phone:string,status:string,password:string)
+    constructor(name:string,surname:string,secondSurname:string,age:number,email:string,phone:string,img:string,password:string)
     {
        this.name = name;
        this.surname = surname;
+       this.secondSurname = secondSurname;
        this.age = age;
        this.email = email;
-       this.rol = rol;
+       this.rol = "user";
        this.phone = phone;
-       this.status = status;
+       this.status = "inactive"
+       this.img = "Por defecto"
        this.password = password;
+       this.age = age
     }
 
 
@@ -32,8 +38,10 @@ export class User{
     * param birthday
     *
     */
-    public setAge(birthDate:string){
+    public setAge(){
+        const birthDate = String(this.age)
         this.age = calculateAge(birthDate);
     }
 
+  
 }

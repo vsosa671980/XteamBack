@@ -6,6 +6,7 @@ import { calculateAge } from "../utils/utils";
 import { TokenGenerator } from "../services/tocken";
 import {User} from "../models/user/User";
 import { EmailVerification } from '../models/email/EmailDao';
+import { EncryptPassword } from "../utils/encryptPassword";
 
 //Create Router Object
 const routerUser = Router();
@@ -18,7 +19,7 @@ const TokenService = new TokenGenerator()
 *
 */
 routerUser.get('/listAllusers', async function(req, res) {
-  const listOfUsers = await dao.listAllUsers();
+  const listOfUsers = await dao.listUsersPaginates(1);
   res.status(200).json(listOfUsers)
   });
 /*
@@ -27,12 +28,10 @@ routerUser.get('/listAllusers', async function(req, res) {
 *
 */
   routerUser.post("/filterUser",async function(req,resp) {
-   
     const filters = req.body
     const user  =await  dao.filterUser(filters)
     resp.json({user:user})
   })
-
 /*
 *Get user filter by Id
 *Return json User or Error
@@ -56,6 +55,7 @@ routerUser.post("/findById", async function(req, resp) {
       resp.status(200).json(user);
   } catch (error) {
       console.error("Error finding User, error");
+           //Create a new formFataObject
       resp.status(500).json({ error: "Error inside server" });
   }
 });
@@ -63,51 +63,47 @@ routerUser.post("/findById", async function(req, resp) {
 * Create a new user and save in the database
 * return json respond or error
 */
-routerUser.post("/createUser", registerUserValidationRules(),checkIfEmailExists, async function(req: any, resp: any) {
+routerUser.post("/crear",checkIfEmailExists, async function(req: any, res: any) {
   try {
-  
     // Validate the data from client
     const errors = validationResult(req);
     //Check errors in data entry
     if (!errors.isEmpty()) {
-      return resp.status(400).json({ errors: errors.array() });
+      return res.status(400).json({ errors: errors.array() });
     }
     // Extrae los datos del cuerpo de la solicitud
-    const { name, surname, age, email, phone, img ,password} = req.body;
-    // Calcula la edad del usuario
+    const { name, surname,secondSurname, age,email, phone, img ,password} = req.body;
+
     let ageUser: number = calculateAge(age);
-    let rol = "user";
-    let status = "withoutSubscription";
-    // Crea el usuario en la base de datos
-    const user = await dao.createUser(name, surname, age, email, phone, img ,rol,status,password);
-    // Devuelve una respuesta exitosa
-    return resp.status(201).json({
-      status: "success",
-      message: "User created successfully",
-      user: {
-        name,
-        surname,
-        age: ageUser,
-        email,
-        phone,
-        img,
-        rol,
-        status,
-        password
-        // Agrega cualquier otra información relevante aquí, como el ID del usuario
-      }
-    });
-  } catch(error) {
-    // Maneja cualquier error que pueda ocurrir durante la creación del usuario
-    console.error("Error creating user:", error);
-    return resp.status(500).json({ error: "Internal server error" });
-  }
-});
-
-
+    console.log(ageUser)
+    const user = new User(name,surname,secondSurname,ageUser,email,phone,img,password);
+    console.log("Usuario" ,user)
+    // Encrypt the password of the user
+    if(password){
+      user.password = await EncryptPassword.encrypt(password);
+    }
+    user.img = "Esto es la imagen"
+    //Create the user
+    await dao.create(user)
+    //send email for verify the user
+    EmailVerification.sendEmailVerification(user)
+    return res.json({
+      status:"success",
+      message:"User created"
+    })
+  } catch (error:any) {
+    console.log(error.message)
+    let response = {
+        status:"error",
+        message:error.message
+    }
+    console.log(response)
+    return res.json(response) 
+   }
+})
 
 const tocken = new TokenGenerator();
-routerUser.post("/loginUser", async function(req: any, resp: any) {
+routerUser.post("/login", async function(req: any, resp: any) {
   //Set the body of the request
   let password = req.body.password
   let email = req.body.email.toLowerCase();
@@ -162,7 +158,10 @@ routerUser.post("/register",registerUserValidationRules(),checkIfEmailExists, as
 
 })
 
-// Ruta para enviar correo electrónico
+/*
+* Send Email to the User for verify the user 
+*
+* */
 routerUser.post('/send-email',async (req:any, res:any) => {
   //Obtein the email from the client
   const {email} = req.body;
@@ -171,22 +170,21 @@ routerUser.post('/send-email',async (req:any, res:any) => {
       const payload = {
         IdUser:50,
       }
-      //Create the token
-      //Set the time of expiration
-       
        // Create a new Token
        const token = new TokenGenerator().setToken(payload);
        // -- Options for Mail --//
        const subject = "Email Verification";
        const text = "Pincha sobre el enlace para verificar el correo";
+       //Send email with token in
        const html = `<a href="http://localhost:8000/user/verification?token=${token}" > Email Verificación</a>`;
+       // Send the options of the email
        const options = EmailVerification.setOption(email,subject,text,html)
-       //Save the token for verify the user for register
+       //Create daoUser instance
        const daoUser = new UserDao();
        //const setTokenStatus = await  daoUser.SetTokenVerification (email,token);
-
-      
+      // Send email to user
         EmailVerification.sendEmail(options)
+        // Send the response to client
         res.status(200).json({
          status: "success",
          message: "Email sent successfully"
@@ -200,22 +198,30 @@ routerUser.post('/send-email',async (req:any, res:any) => {
      }
   });
 
+
+/**
+ * Verify the user 
+ * @ Get the token in the url query
+ */
 routerUser.get("/verification",async (req:any,res:any) => {
+  //Get the token
   const token = req.query.token;
-
+  console.log(token)
   //check the token
-  const tokenService = new TokenGenerator()
-  const checkToken = await tokenService.checkTokenVerification(token)
-
-  if(checkToken){
-    res.redirect('https://www.google.com');
-  }else{
-    res.json({
-      status:"error",
-      message:"User not registered"
-    })
+  if(token){
+    const tokenService = new TokenGenerator()
+    const checkToken = await tokenService.checkTokenVerification(token)
+    console.log(checkToken)
+    //Check if CheckToken is True
+    if(checkToken){
+      //Change the user as verified
+      // Get the data of the token
+      res.redirect('http://localhost:3000/');
+    }
   }
 })
+
+
 
 
 export{routerUser}

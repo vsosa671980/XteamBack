@@ -10,6 +10,10 @@ class connectionDB{
     * Set the connection with the database
     * return: object connection
     */
+    static conn:any;
+
+    constructor(){}
+    
     public static async connect(){
        try{
         const connection = await mysql.createPool({
@@ -23,7 +27,7 @@ class connectionDB{
     }catch(error){
         console.log(error);
     }
- }
+}
 
  public static connection(){
     try{
@@ -37,8 +41,15 @@ class connectionDB{
     return connection;
  }catch(error){
      console.log(error);
+   }
  }
-}
+
+ public static getConnection(){
+    if(!!connectionDB.conn){
+        connectionDB.conn = connectionDB.connection();
+    }
+    return connectionDB.conn;
+ }
 
 }
 
