@@ -7,20 +7,49 @@ import { TokenGenerator } from "../services/tocken";
 import {User} from "../models/user/User";
 import { EmailVerification } from '../models/email/EmailDao';
 import { EncryptPassword } from "../utils/encryptPassword";
+import { tockenVerification } from "../middlewares/UserVerification";
 
 //Create Router Object
 const routerUser = Router();
 //Create new UserDao Object
 const dao = new UserDao();
 const TokenService = new TokenGenerator()
+
+
+
+interface userResponse {
+  users: any[];
+  totalPages: number;
+  actualPage: number;
+}
 /*
 * For list all users
 * Return json list of Users
 *
 */
-routerUser.get('/listAllusers', async function(req, res) {
-  const listOfUsers = await dao.listUsersPaginates(1);
-  res.status(200).json(listOfUsers)
+routerUser.post('/listPaginates', async function(req, res) {
+  console.log("Me estan llamando")
+  const {numberPage} = req.body
+   try {
+        const users = await dao.listPaginates(numberPage) as userResponse; // Get array of users
+        console.log(users)
+        let response = {
+            status:"success",
+            message:"User List",
+            users:users.users,
+            totalPages:users.totalPages,
+            actualPage:users.actualPage
+        }
+        res.status(200).json(response);
+    } catch (error) {
+        let response = {
+            status:"error",
+            message:"Error listing the users",
+            error:error
+        }
+        res.status(500).json(response);
+    }
+ 
   });
 /*
 *Get Users filtered
@@ -39,14 +68,15 @@ routerUser.get('/listAllusers', async function(req, res) {
 routerUser.post("/findById", async function(req, resp) {
   try {
       //Get the id from client
-      const idUser = req.body.UserId;
+      const idUser = req.body.id;
+      console.log(idUser)
       // Check if the param is was passed
       if (!idUser) {
           return resp.status(400).json({status:"error", message: "User param is not send for the client" });
       }
       // Get the user filter by id
       const user = await dao.findUserById(idUser);
-
+      console.log(user)
       // Check if user is found
       if (!user) {
           return resp.status(404).json({status:"error", error: "User Don´t found" });
@@ -63,7 +93,7 @@ routerUser.post("/findById", async function(req, resp) {
 * Create a new user and save in the database
 * return json respond or error
 */
-routerUser.post("/crear",checkIfEmailExists, async function(req: any, res: any) {
+routerUser.post("/crear",tockenVerification,checkIfEmailExists, async function(req: any, res: any) {
   try {
     // Validate the data from client
     const errors = validationResult(req);
@@ -220,6 +250,80 @@ routerUser.get("/verification",async (req:any,res:any) => {
     }
   }
 })
+
+
+routerUser.post("/update",async(req:any, res:any) => {
+    console.log("Entro en el update")
+  try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+      // Get the id
+      const {id,dataObject} = req.body;
+      // Find the training by id
+      const userObject = await dao.findById(id);
+      if(userObject){
+          const user = await dao.update(id,dataObject)
+          if(user){
+              return res.json({
+                  status:"success",
+                  message:"Training updated successfully",
+              })
+          }else{
+              return res.json({
+                  status:"error",
+                  message:"Training not found"
+              })
+          }
+      }
+  } catch (error:any) {
+      let response = {
+          status:"error",
+          message:"Error updating the training",
+          error:error
+      }
+      res.status(500).json(response);
+  }
+});
+
+/**
+ * Delete the training
+ * @param idUser
+ * @return json response
+ */
+routerUser.post("/delete",async(req:any, res:any) => {
+ 
+  try {
+      const {id} = req.body;
+      console.log(id)
+      if (id) {
+          const userDeleted = await dao.delete(id)
+          console.log(userDeleted)
+          if (!userDeleted) {
+              return res.status(400).json(
+                  {status:"error", message: "User not found" });
+          }
+          let response = {
+              status:"success",
+              message:"user deleted successfully",
+              training:userDeleted
+          }
+          res.status(200).json(response);
+      }
+  } catch (error) {
+      let response = {
+          status:"error",
+          message:"Error deleting the user",
+          error:error
+      }
+      res.status(500).json(response);
+      
+  }
+
+})
+
+
 
 
 

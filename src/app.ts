@@ -21,20 +21,14 @@ dotenv.config();
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-
-
-
-
-
-
 // For using dotenv
 dotenv.config();
 //Middlewares
 app.use(cors());
 app.use(express.json());
 //Routes
-app.use("/user",routerUser)
-app.use("/training",TrainingRouter)
+app.use("/users",routerUser)
+app.use("/trainings",TrainingRouter)
 app.use("/payment",routerPayment)
 app.use("/subscription",subscriptionRouter)
 

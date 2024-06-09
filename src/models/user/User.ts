@@ -3,7 +3,7 @@ import { calculateAge } from "../../utils/utils";
 
 export class User{
 
-    idUser?:number;
+    id?:number;
     name:string;
     surname:string;
     secondSurname:string;

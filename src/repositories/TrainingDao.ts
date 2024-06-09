@@ -1,7 +1,7 @@
 import { connectionDB } from "../database/connection";
 import { calculateAge, calculateWeek } from "../utils/utils";
-
 import { Repository } from "../database/queriesModels";
+import  {Training} from "../models/train/Training";
 /*
 * Clase Training Dao
 *
@@ -15,21 +15,6 @@ class TrainingDao extends Repository {
     }
  
 
-/**
- * Find training by id
- * @param id training
- */
-async findByid(id: string){
-    try {
-        const [training] = await this.conn.query(`SELECT * FROM Trainings WHERE idTraining = ?;`,[id])
-        if (training.length === 0){
-            return false
-        }
-        return training[0]
-    } catch (error) {
-        throw new Error(`Error finding training by id: ${error}`);
-    }
-}
  /**
   * Update the training
   * @param id:string
@@ -38,8 +23,6 @@ async findByid(id: string){
   * @param location :strin
   * @param img:stringg
   */
-
-
     async filterTrainings(filters:object) {
         let queryString = `SELECT * FROM Training WHERE `;
         const param:any[] = [];
@@ -85,30 +68,37 @@ async findByid(id: string){
             }
             //Get the week ,first day of the week and last day of the week
             const weekData = calculateWeek(today);
+            console.log(today)
             let week = weekData.week;
+            console.log("Semanaasdfasdfasfsdafsadfsdf",week)
             let firstDay = weekData.firstDayOfWeek;
             let dateEnd = weekData.lastDayOfWeek;
-            console.log(firstDay)
-            console.log(dateEnd)
-
             const [training] = await this.conn.query(`SELECT * FROM Trainings WHERE date >= ? AND date <= ?`,[firstDay,dateEnd]);
-         
-           // if (training.length  === 0){
-             //   return false;
-            //}
-            // Change date to format date
-            training.map((training: any) => {
-                training.date = new Date(training.date).toISOString().split("T")[0];
-                console.log(training.date)
-               
-
+      
+            training.map( (training: any) => {
+                training.date = new Date(training.date).toISOString().split("T")[0];              
             })
-        
+
+            const getTrainings = (async  () => {
+                const trainingPromises = training.map(async (training: any) => {
+                    const result = await this.listUsersTraining(training.id)
+                    console.log("Resultado",result.length)
+                    if(result.length !== 0 ){
+                        training["status"] = "ordered"
+                    }else{
+                        training["status"] = "free"
+                    }
+                })
+                await Promise.all(trainingPromises);
+            })
+            await getTrainings();
+           
             return {
                 training: training,
                 week: week
             };
         } catch (error) {
+            console.log(error)
             return { status: "error", message: "Error finding the training" };
         }
     }
@@ -143,6 +133,7 @@ async insertUserTraining(idUser:string,idTraining:string):Promise<void> {
             VALUES (?, ?);
         `, [idUser, idTraining]);
     } catch (error) {
+        console.log(error)
         throw new Error("Error creating the training");
     }
 }
@@ -173,15 +164,44 @@ async listTrainingUsers(idUser:string){
  * @param idTraining :string
  * @returns : void or error
  */
-async listUsersTraining(idTraining:string){
+async listUserTraining(idTraining:string){
+
+    console.log(idTraining)
+
     try {
         const [users] = await this.conn.query(
             `SELECT u.*
-            FROM trainings t
-            JOIN trainingUser tu ON t.idTraining = tu.idTraining
+            FROM users u
+            JOIN trainingUser tu ON u.id = trainingUser.idUser
             JOIN users u ON tu.idUser = u.idUser
-            WHERE t.idTraining = ?;`,[idTraining]
-    )} catch (error) {
+            WHERE t.id = ?;`,[idTraining])
+
+            console.log(users)
+    } catch (error) {
+        console.log(error)
+        throw new Error(`Error listing all training: ${error}`);
+        
+    }
+
+}
+
+async listUsersTraining(idTraining:string){
+
+    console.log(idTraining)
+
+    try {
+        const [users] = await this.conn.query(
+            `SELECT u.name,u.surname,u.age
+            FROM users u
+            JOIN trainingUser ON u.id = trainingUser.idUser
+            JOIN trainings t ON t.id = trainingUser
+            .idTraining
+            WHERE t.id = ?;`,[idTraining])
+
+            return users;
+
+    } catch (error) {
+        console.log(error)
         throw new Error(`Error listing all training: ${error}`);
         
     }
@@ -192,6 +212,55 @@ async listUsersTraining(idTraining:string){
         const connection = connectionDB.connect();
         return connection;
     }
+    
+
+    async listPaginates(numberPage:number){
+        // count the number of elements
+       const totalResult = await this.conn.query(`SELECT count(*) AS total FROM ${this.tableName}`);
+       const totalUsers = totalResult[0][0].total;
+       const actualPage = numberPage;
+       const limit = 5;
+       const offest = (actualPage - 1 ) * limit;
+       const totalPages = Math.ceil(totalUsers / limit);
+       if(actualPage > totalPages) {
+           return {status:"error","message":"No more Users to list in database"}
+       }
+   try {
+       const [trainings] =await this.conn.query(`SELECT * FROM trainings  LIMIT ? OFFSET ?`,[limit,offest]);
+       trainings.map((train:any)=> {
+          train.date = train.date.toLocaleDateString();
+       })
+        let response =  {
+            trainings:trainings,
+            totalPages:totalPages,
+            actualPage:actualPage
+        }
+        
+        return response;
+   } catch (error) {
+       let response = {status:"error",msg:"error"}
+ }
+}
+
+async deleteUserFromTraining(idTraining:string,idUser:string){
+
+    try {
+        const [users] = await this.conn.query(
+            `DELETE FROM trainingUSer WHERE idUser = ? AND idTraining = ?`,[idUser,idTraining])
+            if (users.affectedRows > 0) {
+                return true
+            } else {
+                return false
+            }
+    } catch (error) {
+        console.log(error)
+        throw new Error(`Error listing all training: ${error}`);
+        
+    }
+
+}
+
+
 }
 
 

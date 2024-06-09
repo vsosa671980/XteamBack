@@ -49,7 +49,7 @@ class TokenGenerator{
      * @param next 
      * @returns 
      */
-    checkToken(req: Request, res: Response ) {
+    checkToken(req: Request) {
         // Obtener el token
         let tokenReceived: string | undefined;
         // Check the headers
@@ -57,7 +57,7 @@ class TokenGenerator{
             //Get the token from headers.authorization
             tokenReceived = req.headers.authorization.split(" ")[1]; 
         } else {     
-            return res.status(401).json({ mensaje: 'Token not Supply error' });
+            throw new Error('Token not supplied');
         }
         try {
             // Create the payloas object
@@ -69,16 +69,15 @@ class TokenGenerator{
                 if (typeof decoded !== "string"){
                      payload = decoded as DecodedToken;
                      return payload
+                }else{
+                    throw new Error('Token inválido');
                 }
             }
         } catch (error) {
             console.log('Error al verificar el token:', error);
-            if (tokenReceived) {
-                return res.status(401).json({ mensaje: 'Token inválido', token: tokenReceived, error: error });
-            } else {
-                return res.status(401).json({ mensaje: 'Token no proporcionado', error: error });
-            }
-    }
+            throw new Error('Token inválido');
+        
+       }
     }
 
     async checkTokenVerification(tokenReceived:string){
@@ -91,15 +90,14 @@ class TokenGenerator{
             console.log("User del Usuario" , IdUser)     
             // Get the the user
             const userDao = new UserDao();
-            const user:User | undefined = await userDao.findUserById(IdUser);
+            const user= await userDao.findUserById(IdUser);
              // Check if user is found
-          
            if (user != undefined) {
             console.log(user)
-            console.log("Usuario", user.idUser);
-            if (user.idUser) {
+            console.log("Usuario", user.id);
+            if (user.id) {
                 // Update the camp of verified in the user
-                await userDao.setVerificationUser(user.idUser)
+                await userDao.setVerificationUser(user.id)
             }
             return true;
           }

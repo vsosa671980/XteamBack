@@ -1,4 +1,4 @@
-import { UserInterface } from "../interfaces/UserInterface";
+
 import { connectionDB } from "../database/connection";
 import { EncryptPassword } from "../utils/encryptPassword";
 import { json } from "sequelize";
@@ -6,6 +6,8 @@ import { calculateAge } from "../utils/utils";
 import { TokenGenerator } from "../services/tocken";
 import { User } from "../models/user/User";
 import { Repository } from "../database/queriesModels";
+import {userResponseSerialized, userSerializedResponse,userSerializatedUpdateAdmin  } from "../models/user/userSerialization"
+import { UserInterface } from "../models/user/userInterface";
 
 /*
 * Class of User Dao
@@ -53,7 +55,7 @@ class UserDao extends Repository{
     *List the users paginated
     *Return the list of uses paginated
     */
-    async listUsersPaginates(numberPage:number){
+    async listPaginates(numberPage:number){
         const totalUsersResult = await this.conn.query(`SELECT count(*) AS total FROM Users`);
         console.log(totalUsersResult)
         const totalUsers = totalUsersResult[0][0].total;
@@ -68,11 +70,27 @@ class UserDao extends Repository{
         }
 
     try {
-        const [rowUsers] =await this.conn.query(`SELECT * FROM Users LIMIT ? OFFSET ?`,[limit,offest]);
-         let response = {status:"ok",users:rowUsers,};
+        const [users] = await this.conn.query(`SELECT * FROM Users LIMIT ? OFFSET ?`, [limit, offest]);
+        const usersSerializated: userResponseSerialized[] = [];
+        users.forEach((user: UserInterface) => {
+            const dateVerification= user.dateVerification?.toLocaleString().split(",")[0]
+            user.dateVerification = dateVerification
+            let UserSerialized:userResponseSerialized = userSerializedResponse(user);
+            usersSerializated.push(UserSerialized);
+            console.log(UserSerialized)
+        });
+        
+         let response = {
+            status:"success",
+            users:usersSerializated,
+            totalPages:totalPages,
+            actualPage:actualPage
+            };
          return response;
-    } catch (error) {
+    } catch (error:any) {
+        throw new Error
         let response = {status:"error",msg:"error"}
+
   }
 }
  /*
@@ -83,8 +101,10 @@ class UserDao extends Repository{
   async findUserById(id:number){
 
     try {
-        const [user]= await this.conn.query(`Select * FROM users Where idUser = ?`,[id])
-        return user[0]|| undefined;
+        const [user]= await this.conn.query(`Select * FROM users Where id = ?`,[id])
+        const userSerializated = userSerializatedUpdateAdmin(user[0]);
+        console.log("Usuario Serializado",userSerializated)
+        return userSerializated|| undefined;
     } catch (error) {
         let response = {status:"error",message:"Error finding User"}
     }
@@ -169,7 +189,7 @@ class UserDao extends Repository{
             // --Tocken --//
             // Data for payload
             const payload = {
-                "userid":user.idUser,
+                "id": user.id,
                 "name":user.name,
                 "rol":user.rol,
                 "verificated": user.verificated,
@@ -243,3 +263,4 @@ async getPaymentsUSer(idUser:string){
 }
 
 export{UserDao}
+
