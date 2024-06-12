@@ -57,9 +57,21 @@ routerUser.post('/listPaginates', async function(req, res) {
 *
 */
   routerUser.post("/filterUser",async function(req,resp) {
-    const filters = req.body
-    const user  =await  dao.filterUser(filters)
-    resp.json({user:user})
+    
+    try {
+      const filters = req.body
+      const [user]  =await  dao.filterUser(filters)
+      resp.json(user)
+      
+    } catch (error:any) {
+      console.log(error)
+      resp.json({
+        status:"error",
+        message:"User Don´t found"
+      })
+      
+    }
+   
   })
 /*
 *Get user filter by Id
@@ -69,7 +81,7 @@ routerUser.post("/findById", async function(req, resp) {
   try {
       //Get the id from client
       const idUser = req.body.id;
-      console.log(idUser)
+      console.log("Soy el id,",idUser)
       // Check if the param is was passed
       if (!idUser) {
           return resp.status(400).json({status:"error", message: "User param is not send for the client" });
@@ -93,7 +105,7 @@ routerUser.post("/findById", async function(req, resp) {
 * Create a new user and save in the database
 * return json respond or error
 */
-routerUser.post("/crear",tockenVerification,checkIfEmailExists, async function(req: any, res: any) {
+routerUser.post("/register",checkIfEmailExists, async function(req: any, res: any) {
   try {
     // Validate the data from client
     const errors = validationResult(req);
@@ -107,7 +119,6 @@ routerUser.post("/crear",tockenVerification,checkIfEmailExists, async function(r
     let ageUser: number = calculateAge(age);
     console.log(ageUser)
     const user = new User(name,surname,secondSurname,ageUser,email,phone,img,password);
-    console.log("Usuario" ,user)
     // Encrypt the password of the user
     if(password){
       user.password = await EncryptPassword.encrypt(password);
@@ -150,43 +161,7 @@ routerUser.post("/loginTocken",tocken.checkToken, async function(req: any, resp:
    })
 })
 
-routerUser.post("/register",registerUserValidationRules(),checkIfEmailExists, async function(req: any, resp: any) {
 
-  try {
-    const errors = validationResult(req);
-    //Check errors in data entry
-    if (!errors.isEmpty()) {
-      return resp.status(400).json({ errors: errors.array() });
-    }
-    // Extrae los datos del cuerpo de la solicitud
-    const { name, surname, age, email, phone, img ,password} = req.body;
-    // Calcula la edad del usuario
-    const userData = {
-      name:name,
-      surname:surname,
-      age:age,
-      email:email,
-      phone:phone,
-      img:img,
-    }
-
-    let response = {
-      status:"success",
-      message:"Data of user",
-      user:userData
-    }
-    return response;
-     
-  } catch (error) {
-    let response = {
-      status:"error",
-      message:"Error creating the user",
-      error:error
-    }
-    return response;
-  }
-
-})
 
 /*
 * Send Email to the User for verify the user 
@@ -233,22 +208,47 @@ routerUser.post('/send-email',async (req:any, res:any) => {
  * Verify the user 
  * @ Get the token in the url query
  */
-routerUser.get("/verification",async (req:any,res:any) => {
+routerUser.post("/verification",async (req:any,res:any) => {
   //Get the token
-  const token = req.query.token;
+  console.log("me llaman")
+  const {token} = req.body;
   console.log(token)
-  //check the token
-  if(token){
-    const tokenService = new TokenGenerator()
-    const checkToken = await tokenService.checkTokenVerification(token)
-    console.log(checkToken)
-    //Check if CheckToken is True
-    if(checkToken){
-      //Change the user as verified
-      // Get the data of the token
-      res.redirect('http://localhost:3000/');
+ console.log("entro en el que te dije")
+
+ try {
+  if (token) {
+    const tokenService = new TokenGenerator();
+    const checkToken = await tokenService.checkTokenVerification(token);
+    console.log("El Token",checkToken);
+    // Check if CheckToken is True
+    if (checkToken) {
+      const response = {
+        status: "success",
+        msg: "Verificated"
+      };
+      console.log(response);
+      res.status(200).json(response);
+     
+    } else {
+      console.log("Token no válido");
+      const response = {
+        status: "error",
+        message: "Token inválido"
+      };
+      console.log(response);
+      res.status(400).json(response); // ¡Asegúrate de devolver una respuesta en este caso!
     }
   }
+} catch (error) {
+  console.error("Error durante la verificación del token:", error);
+   res.status(400).json({
+    status:"error",
+    message:"Error creating the Verification"
+   });
+
+}
+  //check the token
+ 
 })
 
 
@@ -323,7 +323,30 @@ routerUser.post("/delete",async(req:any, res:any) => {
 
 })
 
-
+routerUser.post("/findByEmail", async function(req, resp) {
+  try {
+      //Get the id from client
+      const email = req.body.email;
+      console.log(email)
+      // Check if the param is was passed
+      if (!email) {
+          return resp.status(400).json({status:"error", message: "User param is not send for the client" });
+      }
+      // Get the user filter by id
+      const user = await dao.findUSerByEmail(email);
+      console.log(user)
+      // Check if user is found
+      if (!user) {
+          return resp.status(404).json({status:"error", error: "User Don´t found" });
+      }
+      //Return the response json with user
+      resp.status(200).json(user);
+  } catch (error) {
+      console.error("Error finding User, error");
+           //Create a new formFataObject
+      resp.status(500).json({ error: "Error inside server" });
+  }
+});
 
 
 

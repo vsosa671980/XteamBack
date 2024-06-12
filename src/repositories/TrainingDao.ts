@@ -208,10 +208,10 @@ async listUsersTraining(idTraining:string){
 
 }
 
-    async getConnection(){
-        const connection = connectionDB.connect();
-        return connection;
-    }
+   // async getConnection(){
+     //   const connection = connectionDB.connect();
+       // return connection;
+    //}
     
 
     async listPaginates(numberPage:number){

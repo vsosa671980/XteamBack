@@ -5,15 +5,16 @@ export class Payment {
     type:string;
     date:Date;
     amount:number;
-    subscriptionId:number;
-    idUser:number;
+    subscriptionId:number | null;
+    idUser:string;
     
 
-    constructor(type:string,amount:number,subscriptionId:number,idUser:number){
-        this.date = new Date();
+    constructor(type:string,amount:number,idUser:string,date:Date){
+      
         this.type = type;
+        this.date = date
         this.amount = amount;
-        this.subscriptionId = subscriptionId;
         this.idUser = idUser;
+        this.subscriptionId = null;
     }
 }

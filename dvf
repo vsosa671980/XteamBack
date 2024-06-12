@@ -1,0 +1,143 @@
+[33mcommit 135dc517d2e5abf766976dc5f5000fea4248e815[m[33m ([m[1;36mHEAD -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m
+Author: Vicente Sosa <vsosaal@gmail.com>
+Date:   Sun Jun 9 20:55:30 2024 +0200
+
+    adding routes and features to TrainingRoutes and TrainindDao file
+
+[33mcommit 90302d2abd1b5ff00e3326e86e0894aab9185c76[m
+Author: Vicente Sosa <vsosaal@gmail.com>
+Date:   Mon May 27 22:20:11 2024 +0200
+
+    Fixing problems in Login and Register
+
+[33mcommit 445c8f672b7ea93e4f3b96b4860653b7ecbf08cf[m
+Author: Vicente Sosa <vsosaal@gmail.com>
+Date:   Thu May 16 20:28:46 2024 +0200
+
+    Created File database/queriModels , file with global and commun queires of models. Create the file SusbcriptionRoute.ts,Subscription.ts and SubscriptionDao.For making queires realted with the subscription,not is finished yet.
+
+[33mcommit 14fb5733788b9b18b8526977702a95800856ef30[m
+Author: Vicente Sosa <vsosaal@gmail.com>
+Date:   Tue May 14 22:56:21 2024 +0200
+
+    Creating checkTokenVerification and routerUSer.get /verification. it not ended up
+
+[33mcommit 7f01f592c8dd5c330a46f08188a91988e9592a87[m
+Author: Vicente Sosa <vsosaal@gmail.com>
+Date:   Tue May 14 14:21:55 2024 +0200
+
+    Install npm nodemailer and begining to create the emailVerificacion
+
+[33mcommit 300cb07a012d4f32876c8b5c89819184b7a41fcc[m
+Merge: bc54f9a c717e6c
+Author: Vicente Sosa <vsosaal@gmail.com>
+Date:   Tue May 14 12:25:05 2024 +0200
+
+    Merge branch 'main' of github.com:vsosa671980/XteamBack
+
+[33mcommit bc54f9ab97c395fd9efe30b08a49d61a1fcd6ba6[m
+Author: Vicente Sosa <vsosaal@gmail.com>
+Date:   Tue May 14 12:24:36 2024 +0200
+
+    Creating file daoPayments and RouterPayments
+
+[33mcommit c717e6cdf5cc8b629e1049bbf25c5bc9bf8024a6[m
+Author: Vicente Sosa <83186633+vsosa671980@users.noreply.github.com>
+Date:   Mon May 13 12:56:50 2024 +0200
+
+    Update Readme.md
+
+[33mcommit 005fd655e07340aeca81447b8b95a6fab6a1984c[m
+Author: Vicente Sosa <vsosaal@gmail.com>
+Date:   Mon May 13 12:47:00 2024 +0200
+
+    Fixing app.ts file
+
+[33mcommit f1c8208114f93ab378e38f8c0e3003a7aae5d7e0[m
+Author: Vicente Sosa <vsosaal@gmail.com>
+Date:   Wed May 8 11:02:14 2024 +0200
+
+    Creating Training Dao and Router
+
+[33mcommit 72567aa4c1913cd64df8ac1a117c6df0ec1a9ba3[m
+Author: Vicente Sosa <vsosaal@gmail.com>
+Date:   Sun Apr 14 21:08:08 2024 +0200
+
+    commit salve
+
+[33mcommit 104c75ce4176120c22708b07cf5d03211f45e76b[m
+Author: Vicente Sosa <vsosaal@gmail.com>
+Date:   Wed Mar 13 21:56:40 2024 +0100
+
+    Login v2 Fixing Password Encrypted
+
+[33mcommit 16a05e043910a2f62bb16fc373e8bf57a19d88b1[m
+Merge: 686ff4d f2514f7
+Author: Vicente Sosa <vsosaal@gmail.com>
+Date:   Wed Mar 13 21:03:32 2024 +0100
+
+    Merge branch 'main' of github.com:vsosa671980/XteamBack
+
+[33mcommit 686ff4d90a7c2e57ea61a84cc2bea30c64d622f0[m
+Author: Vicente Sosa <vsosaal@gmail.com>
+Date:   Wed Mar 13 21:03:16 2024 +0100
+
+    Login User
+
+[33mcommit f2514f733000d5c66926d979709d439f2008615f[m
+Author: Vicente Sosa <83186633+vsosa671980@users.noreply.github.com>
+Date:   Fri Mar 8 13:14:01 2024 +0100
+
+    Update Readme.md
+    
+    Fix
+
+[33mcommit e3f16c59d2410a4fc7959bcf5a4d118b414eb87f[m
+Author: Vicente Sosa <83186633+vsosa671980@users.noreply.github.com>
+Date:   Fri Mar 8 13:13:37 2024 +0100
+
+    Update Readme.md
+    
+    Reame
+
+[33mcommit 8a014b6163645f8ef9d0f8c450ea0e5862f951d9[m
+Author: Vicente Sosa <83186633+vsosa671980@users.noreply.github.com>
+Date:   Fri Mar 8 13:13:30 2024 +0100
+
+    Update Readme.md
+
+[33mcommit 4eb52b9bef3355f32be58bca5b5945b755e5dbb7[m
+Author: Vicente Sosa <vsosaal@gmail.com>
+Date:   Fri Mar 8 13:10:27 2024 +0100
+
+     Creating Login User Method
+
+[33mcommit c5df182f1ee06f39b23fc8c80a1ea64a1fbdf6ef[m
+Author: Vicente Sosa <vsosaal@gmail.com>
+Date:   Wed Feb 7 21:57:34 2024 +0100
+
+    Creating the class for token
+
+[33mcommit 47d8b19824ea83668e54a66ee44953ac61d5ce4f[m
+Author: Vicente Sosa <vsosaal@gmail.com>
+Date:   Wed Feb 7 19:49:54 2024 +0100
+
+    First commit proyect estructure
+
+[33mcommit cd395a1de5aee61e5f4d64c980368c26cf257c11[m
+Author: Vicente Sosa <vsosaal@gmail.com>
+Date:   Wed Feb 7 19:48:03 2024 +0100
+
+    First commit proyect estructure
+
+[33mcommit c458e27e095347eb13ef9ccaae3825fe01466dfd[m
+Author: Vicente Sosa <vsosaal@gmail.com>
+Date:   Wed Feb 7 19:40:17 2024 +0100
+
+    First commit
+
+[33mcommit 027ed2101bf815e0a63fd3b2846b1a4377fd74ef[m[33m ([m[1;32mdevelop[m[33m)[m
+Author: Vicente Sosa <vsosaal@gmail.com>
+Date:   Wed Feb 7 19:07:24 2024 +0100
+
+    first commit

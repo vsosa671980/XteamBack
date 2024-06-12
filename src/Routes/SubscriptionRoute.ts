@@ -5,6 +5,10 @@ import { SubscriptionDao } from "../repositories/SubscriptionDao";
 
 export const subscriptionRouter = Router();
 
+/*
+* Create the subscriptions
+* @return{json with status success, error and message}
+*/ 
 subscriptionRouter.post("/create",async (req, res) => {
     const {description1,
          description2,
@@ -31,7 +35,10 @@ subscriptionRouter.post("/create",async (req, res) => {
     }
 })
 
-
+/*
+* Delete the subscription
+* @return{json with status success, error and message}
+*/
 subscriptionRouter.post("/delete",async(req:any,res:any) => {
     const {idSubscription} = req.body;
    try {
@@ -52,6 +59,11 @@ subscriptionRouter.post("/delete",async(req:any,res:any) => {
 })
 
 
+/*
+* Update the subscription
+* @return{json with status success, 
+* error and message,subscriptionUPdated Array}
+*/
 subscriptionRouter.post("/update",async(req:any,res:any) => {
     const {idSubscription} = req.body;
     const {data} = req.body;
@@ -77,8 +89,12 @@ subscriptionRouter.post("/update",async(req:any,res:any) => {
    }
 })
 
-
-subscriptionRouter.post("/list",async(req:any,res:any) => {
+/*
+* List the subscriptions
+* @return{json with status success| error 
+* and message,Array of subscriptions Object}
+*/
+subscriptionRouter.post("/listUserSubscription",async(req:any,res:any) => {
      const{idUser,status} = req.body
  
    try {
@@ -87,12 +103,14 @@ subscriptionRouter.post("/list",async(req:any,res:any) => {
        console.log(subscription)
 
        if(!subscription){
-        return res.json({status:"error",message:"Subscription not found"})
+        return res.json(
+            {status:"error",
+            message:"Subscription not found"})
        }
      
        return res.json({
            status:"success",
-           message:" list",
+           message:" subscription of user",
            subscription:subscription
        })
    } catch (error:any){ 
@@ -103,3 +121,35 @@ subscriptionRouter.post("/list",async(req:any,res:any) => {
        return res.json(response)
    }
 })
+
+subscriptionRouter.post("/saveSubscriptionAndPayment",async(req:any,res:any) => {
+    const{idUser,payment,idSubscription} = req.body
+    console.log(idUser)
+    console.log(payment)
+    console.log(idSubscription)
+
+  try {
+      const dao = new SubscriptionDao();
+      const subscription = await dao.saveSubscriptions(idUser,payment,idSubscription)
+      console.log(subscription)
+      if(!subscription){
+       return res.json(
+           {status:"error",
+           message:"Can't save subscription"})
+      }
+    
+      return res.json({
+          status:"success",
+          message:" subscription and payment saved successfully"
+      })
+  } catch (error:any){ 
+    console.log(error)
+      let response = {
+       
+          status:"Error",
+          message:error.message
+      }
+      return res.json(response)
+  }
+})
+

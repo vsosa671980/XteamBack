@@ -3,6 +3,9 @@ import nodemailer from 'nodemailer';
 import { TokenGenerator } from '../../services/tocken';
 import { User } from '../user/User';
 import { UserDao } from '../../repositories/UserDao';
+import { connectionDB } from '../../database/connection';
+import { UserInterface } from '../user/userInterface';
+import mysql, { RowDataPacket } from 'mysql2';
 
 //DOTENV
 dotenv.config();
@@ -49,15 +52,19 @@ export class EmailVerification{
             //Get the id Of the user
             const userDao = new UserDao()
             console.log("Mail del Usuario" ,user.email)
-            const userDatabase  = await userDao.findUSerByEmail(user.email)
-            const id = userDatabase.idUser
-            console.log("Usuario", userDatabase)
-            console.log("Id del usuario",id)
+            //const userDatabase  = await userDao.findUSerByEmail(user.email)
+           const usersFind =await  userDao.findUSerByEmail(user.email)
+           
+         
+            let idUser = usersFind.id
+            let name = usersFind.name
+            let rol = usersFind.rol
+           // console.log("Id del usuario",id)
             
             const payload = {
-                "IdUser": id,
-                "name":user.name,
-                "rol":user.rol
+                "IdUser": idUser,
+                "name":name,
+                "rol":rol
             }
             //Create token Object
             const tokenService = new TokenGenerator();
@@ -67,7 +74,8 @@ export class EmailVerification{
             const emailUser = user.email
             const subject = "Verificacion de Correo electronico"
             const text = "Pulsa el boton para enviar la verificacion de del correo"
-            const html = `<a href="http://localhost:8000/user/verification?token=${token}" > Email Verificación</a>`;
+            const html = `<a href="http://localhost:3000/user/verificacionUser?token=${token}" > Email Verificación</a>`;
+            //const html = `<a href="http://www.google.es" > Google</a>`;
             // Send the email Verification
             const optionsEmail = EmailVerification.setOption(emailUser,subject,text,html)
             //Send the email to the user

@@ -91,6 +91,7 @@ class TokenGenerator{
             // Get the the user
             const userDao = new UserDao();
             const user= await userDao.findUserById(IdUser);
+            console.log("Usuario encontrado",user)
              // Check if user is found
            if (user != undefined) {
             console.log(user)
@@ -106,10 +107,10 @@ class TokenGenerator{
                   
         }catch(error){
             console.log('Error al verificar el token:', error);
-
         }
-
     }
+
+    
 }
 
 

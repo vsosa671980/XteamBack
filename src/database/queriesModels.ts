@@ -4,20 +4,24 @@ export class Repository{
 
 
     tableName: string = "Repository";
-    protected conn:any = connectionDB.connection();
-
+    protected  conn:any = ""
     constructor() { 
-       
+    this.getConnection();
     }
 
-    getConnection (){
-        const connection = connectionDB.connect();
-        return connection;
+    async getConnection():Promise<any> {
+        try {
+            const connection = await connectionDB.connect();
+            this.conn = connection
+        } catch (error) {
+            console.error("Error during database connection:", error);
+            throw error;
+        }
     }
 
     async create (data:object) {
         //const data = this;
-        console.log(data)
+        console.log("Objeto",data)
         try {
         
             const className = this.tableName;
@@ -40,12 +44,12 @@ export class Repository{
                 });
     
                 query += ")";
-            
-            const conn  = connectionDB.connection();
+            const conn =await  connectionDB.connect();
             if(conn){
                 console.log(query)
                 console.log(values)
                 await conn.query(query,values);
+                return true;
             }
         } catch (error:any) {
             console.log("error",error.message)
@@ -58,7 +62,7 @@ export class Repository{
         try {
             const className = this.tableName
             let query = `SELECT * FROM ${className} WHERE id =?`;
-            const conn = connectionDB.connection();
+            const conn =await  connectionDB.connect();
             if(conn){
                const [subscription]:any =  await conn.query(query,[id]);
                if(subscription === 0){
@@ -71,36 +75,33 @@ export class Repository{
         }
     }
 
-    async delete(id:number){
-
+    async delete(id: number) {
         try {
-            const className = this.tableName;
-            let query = `DELETE FROM users WHERE id =?`;   
-            const conn = connectionDB.connection();
-            if(conn){
-                const object = await this.findById(id)
-                console.log("Objeto ",object);
-                if(object){
-                    await conn.query(query,id);
-                    return object;
-                }else{
-                    return false;
-                }
+            const query = `DELETE FROM users WHERE id = ?`;   
+            const conn = await connectionDB.connect();
+            if(!conn){
+                await connectionDB.connect()
+            }
+            
+            if (conn) {
+                await conn.query(query, [id]);
+                await conn.end(); // Ejecutar la consulta de eliminación directamente
+                return true; // Indicar que la eliminación fue exitosa
+            } else {
+                return false; // Indicar que no se pudo conectar a la base de datos
             }
         } catch (error:any) {
-            console.log(error);
-            throw new Error(error.message)
+            console.error(error);
+            throw new Error(error.message);
         }
-       
-        
-        }
+    }
 
     async update(id:number,dataObject:object){
         console.log(id)
        
         try{
 
-            const conn = connectionDB.connection();
+            const conn =await  connectionDB.connect();
             const data = dataObject;
             const className = this.tableName;
             const keys = Object.keys(data);
@@ -113,8 +114,7 @@ export class Repository{
             }
         });
            query += ` WHERE id = ?`;
-        console.log(values)
-        console.log(id)
+         console.log("Valores",values)
         // Imprimir la consulta SQL generada
         console.log("Consulta SQL generada:", query);
             //const conn = connectionDB.connection();

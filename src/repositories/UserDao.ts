@@ -8,6 +8,7 @@ import { User } from "../models/user/User";
 import { Repository } from "../database/queriesModels";
 import {userResponseSerialized, userSerializedResponse,userSerializatedUpdateAdmin  } from "../models/user/userSerialization"
 import { UserInterface } from "../models/user/userInterface";
+import mysql, { RowDataPacket } from 'mysql2';
 
 /*
 * Class of User Dao
@@ -15,12 +16,44 @@ import { UserInterface } from "../models/user/userInterface";
 */
 class UserDao extends Repository{
 
+    async cleanupUsers() {
+        try {
+            const statusVerification = {
+                verificated:0
+            }
+            const [users]:[User[]] = await this.filterUser(statusVerification)
+            for (const user of users) {
+                if (user && user.id !== undefined) {
+                    await this.delete(user.id);
+                }
+            }
+            
+        } catch (error) {
+            console.error('Error durante la limpieza de usuarios no registrados:', error);
+             throw error;
+        }
+
+        
+    }
+
     conn:any
     tableName:string = "users"
-    constructor(){
+    constructor() { 
         super();
-    }
- 
+        this.getConnection();
+        }
+    
+        async getConnection():Promise<any> {
+            try {
+                const connection = await connectionDB.connect();
+                this.conn = connection
+            } catch (error) {
+                console.error("Error during database connection:", error);
+                throw error;
+            }
+        }
+
+
     async SetTokenVerification (email:string,token:string){
         let user = await this.findUSerByEmail(email)
       
@@ -42,6 +75,7 @@ class UserDao extends Repository{
      async  listAllUsers() {      
  
         try {
+            
             const [userList] = await this.conn.query( `Select * from Users`);
             let response ={users:userList,responseStatus:"Ok"}
             console.log(response)
@@ -55,14 +89,16 @@ class UserDao extends Repository{
     *List the users paginated
     *Return the list of uses paginated
     */
-    async listPaginates(numberPage:number){
+    async listPaginates(numberPage:number=1){
+        
+        
         const totalUsersResult = await this.conn.query(`SELECT count(*) AS total FROM Users`);
         console.log(totalUsersResult)
         const totalUsers = totalUsersResult[0][0].total;
         const actualPage = numberPage;
         const limit = 10;
         //Init of element
-        const offest = (actualPage - 1 ) * limit;
+        const offset = (actualPage - 1 ) * limit;
         const totalPages = Math.ceil(totalUsers / limit);
 
         if(actualPage > totalPages) {
@@ -70,7 +106,7 @@ class UserDao extends Repository{
         }
 
     try {
-        const [users] = await this.conn.query(`SELECT * FROM Users LIMIT ? OFFSET ?`, [limit, offest]);
+        const [users] = await this.conn.query(`SELECT * FROM Users LIMIT ? OFFSET ?`, [limit, offset]);
         const usersSerializated: userResponseSerialized[] = [];
         users.forEach((user: UserInterface) => {
             const dateVerification= user.dateVerification?.toLocaleString().split(",")[0]
@@ -88,6 +124,7 @@ class UserDao extends Repository{
             };
          return response;
     } catch (error:any) {
+        console.log(error)
         throw new Error
         let response = {status:"error",msg:"error"}
 
@@ -99,30 +136,40 @@ class UserDao extends Repository{
  * Return json of user
  */
   async findUserById(id:number){
-
+   
+  
     try {
-        const [user]= await this.conn.query(`Select * FROM users Where id = ?`,[id])
+        await this.getConnection()
+        const connection = await this.conn
+        const [user]= await connection.query(`Select * FROM users Where id = ?`,[id])
+        console.log("Usurior ACASDC",user)
         const userSerializated = userSerializatedUpdateAdmin(user[0]);
         console.log("Usuario Serializado",userSerializated)
         return userSerializated|| undefined;
     } catch (error) {
+        console.log(error)
+        console.log("ENTRO EN EEL ERROR")
         let response = {status:"error",message:"Error finding User"}
     }
   }
 
+
   async findUSerByEmail(email:string){
-    console.log(email)
     try {
-        const [user] = await this.conn.query(`Select * FROM users Where email = ? `,[email])
-        console.log(user)
-        if (user.length !== 0) {
+        await this.getConnection()
+        const connection = await this.conn
+        console.log("SOU LA CONE",connection)
+        const [user] =await connection.query(`Select * FROM users Where email = ? `,[email])
+        console.log("usuario",user[0])
+        if (user[0].length !== 0) {
             return user[0]
         }else{
             return false
         }
-    } catch (error) {
-        console.log(error)
+    } catch (error:any) {
         
+        console.log(error)
+        throw new Error(error)
     }
   }
 /*
@@ -133,7 +180,7 @@ class UserDao extends Repository{
  async  filterUser(filters:object)
  
  {
-    
+   
     let queryString = `SELECT * FROM Users WHERE `;
     //Create array for storage filters param
     const param:any[] = [];
@@ -153,7 +200,9 @@ class UserDao extends Repository{
     });
     // Get the users includes with the filters 
     try {
-        const [user] = await this.conn.query(queryString, param);
+        await this.getConnection()
+        const connection = await this.conn
+        const user = await connection.query(queryString, param);
         console.log("Usuario")
         if (user.length  === 0){
             console.log("False")
@@ -221,7 +270,7 @@ class UserDao extends Repository{
        
         const dateUpdate = new Date()
         const verification = true;
-        const query = "UPDATE users SET verificated = ?,dateVerification = ? WHERE idUser = ?";
+        const query = "UPDATE users SET verificated = ?,dateVerification = ? WHERE id = ?";
         await this.conn.query(query,[verification,dateUpdate,idUser])
     } catch (error:any) {
         throw new Error(error.message)
@@ -252,10 +301,10 @@ async getPaymentsUSer(idUser:string){
     * Get connection element of database
     * Return connection : Promise
     */
-    getConnection(){
-        const connection = connectionDB.connect();
-        return connection;
-    }
+    //getConnection(){
+      //  const connection = connectionDB.connect();
+        //return connection;
+    //}
 
  
   
